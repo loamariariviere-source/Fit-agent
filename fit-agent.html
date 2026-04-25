@@ -934,8 +934,8 @@ const FOOD_DB=[
   {kw:['noix','noix de cajou'],p100:15,c100:654,g:30,label:'Noix (30g)'},
   {kw:['banane'],p100:1.1,c100:89,g:120,label:'Banane (1 moyenne)'},
   {kw:['cranberries','canneberges','myrtilles','fruits rouges','baies'],p100:0.5,c100:57,g:30,label:'Fruits rouges (30g)'},
+  {kw:['pain complet','pain de mie','pain aux céréales','pain cereales'],p100:9,c100:247,g:30,label:'Pain complet (1 tranche)'},
   {kw:['pain','tartine','toast','baguette'],p100:8,c100:265,g:30,label:'Pain (1 tranche)'},
-  {kw:['pain complet','pain de mie'],p100:9,c100:247,g:30,label:'Pain complet (1 tranche)'},
   {kw:['œuf dur','oeuf dur','œufs durs','oeufs durs'],p100:13,c100:155,g:1,label:'Œufs durs',perUnit:6.5,calPerUnit:80},
   // ── Fruits ──────────────────────────────────────
   {kw:['kiwi'],p100:1.1,c100:61,g:80,label:'Kiwi (1 fruit)'},
@@ -1533,6 +1533,7 @@ function runEst(){
   if(!desc){showToast('⚠️ Décris ton repas d\'abord');return}
   const txt=desc.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   const items=[];
+  const matchedRanges=[];// Tracker positions déjà matchées — évite pain + pain complet en double
   FOOD_DB.forEach(food=>{
     let matched=false;let kw='';let kNorm='';let matchIdx=-1;
     for(const k of food.kw){
@@ -1542,18 +1543,24 @@ function runEst(){
       // Vérification frontière de mot : la lettre suivante ne doit pas être une lettre (évite cacahuete dans cacahuetes)
       const after=txt[idx+kn.length];
       if(after&&/[a-z]/.test(after))continue;
+      // Vérification chevauchement : ignore si position déjà couverte par un match plus spécifique
+      const overlaps=matchedRanges.some(([s,e])=>idx<e&&idx+kn.length>s);
+      if(overlaps)continue;
       matched=true;kw=k;kNorm=kn;matchIdx=idx;break;
     }
     if(!matched)return;
+    matchedRanges.push([matchIdx,matchIdx+kNorm.length]);
     let count=1;
     // Fenêtre locale de 45 caractères AVANT le mot-clé (évite qu'un "2" en début de texte s'applique à tous les aliments)
     const localBefore=txt.substring(Math.max(0,matchIdx-45),matchIdx);
     for(const[w,n]of Object.entries(NB_MAP)){if(localBefore.includes(w)){count=n;break}}
     let mod=1;
     for(const[w,f]of Object.entries(MODS)){if(localBefore.includes(w)){mod=f;break}}
-    // Détection quantité en g/ml : fenêtre locale autour du mot-clé (évite qu'un "40g" de flocons s'applique à la whey)
+    // Détection quantité en g/ml : fenêtre locale autour du mot-clé
     const localAround=txt.substring(Math.max(0,matchIdx-10),Math.min(txt.length,matchIdx+kNorm.length+55));
-    const gramMatch=localAround.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grammes?|ml)\b/);
+    let gramMatch=localAround.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grammes?|ml)\b/);
+    // Fallback : si pas de grammes dans la fenêtre proche, prend le DERNIER gramme dans localBefore (ex: "55g de magret")
+    if(!gramMatch){const allG=[...localBefore.matchAll(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grammes?|ml)\b/g)];if(allG.length>0)gramMatch=allG[allG.length-1];}
     const explicitG=gramMatch?parseFloat(gramMatch[1].replace(',','.')):null;
     const portion=explicitG||food.g;
     const prot=food.perUnit?count*food.perUnit*mod:portion*food.p100/100*mod*count;
