@@ -531,12 +531,22 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
       <button class="w-sess-btn voyage" onclick="startWorkout('voyage_legs')">
         <span class="wsicon">✈️</span>
         <span class="wsname">Fessiers Voyage</span>
-        <span class="wstype">Hôtel — jambes</span>
+        <span class="wstype">Hôtel — poids limités</span>
       </button>
       <button class="w-sess-btn voyage" onclick="startWorkout('voyage_upper')">
         <span class="wsicon">✈️</span>
         <span class="wsname">Haut du corps Voyage</span>
-        <span class="wstype">Hôtel — haut</span>
+        <span class="wstype">Hôtel — poids limités</span>
+      </button>
+      <button class="w-sess-btn voyage" onclick="startWorkout('voyage_legs_bench')" style="background:linear-gradient(135deg,#2a1f3d,#1f1a2e);border-color:#9b7ecf">
+        <span class="wsicon">🏨</span>
+        <span class="wsname">Fessiers Voyage+</span>
+        <span class="wstype">Hôtel — banc disponible</span>
+      </button>
+      <button class="w-sess-btn voyage" onclick="startWorkout('voyage_upper_bench')" style="background:linear-gradient(135deg,#2a1f3d,#1f1a2e);border-color:#9b7ecf">
+        <span class="wsicon">🏨</span>
+        <span class="wsname">Haut du corps Voyage+</span>
+        <span class="wstype">Hôtel — banc disponible</span>
       </button>
     </div>
     <div class="section-title">Surcharge progressive</div>
@@ -832,6 +842,28 @@ const PROGRAM = {
         {id:'v_kickback',      name:'Kickback élastique/câble',  sets:3,rMin:15,rMax:20,wDef:0, wUnit:'corps',   wStep:0,  restS:60,ov:'reps',   tip:'Poulie basse ou élastique fixé à la cheville · Même geste qu\'en salle : extension de hanche vers l\'arrière, genou légèrement fléchi · <strong>Squeeze fessier 1s en haut</strong> · 15–20 reps/côté · Alternative sans matériel : kickback à 4 pattes au sol, élastique sur le pied'},
       ]
     ]
+  },
+  voyage_legs_bench:{
+    name:'Fessiers Voyage (banc + haltères légers)', type:'Hôtel — banc disponible', icon:'🏨',
+    cycles:[
+      [// Séance unique — cycle ignoré, toujours utilisé
+        {id:'vb_hipthrust',   name:'Hip Thrust avec banc',         sets:4,rMin:12,rMax:15,wDef:10,wUnit:'kg',     wStep:2.5,restS:90,ov:'reps', tip:'Haut du dos sur le banc, pieds à plat, genoux à 90° · Haltère posé sur les hanches, coussin si possible · <strong>Poussée explosive en haut, descente en 3 secondes</strong> · Rétroversion du bassin en haut — ne cambre pas le bas du dos · Poids léger ? Allonge la descente à 4 secondes et fais une pause 1s en haut · 12–15 reps'},
+        {id:'vb_bulgare',     name:'Split squat bulgare',           sets:3,rMin:12,rMax:15,wDef:6, wUnit:'kg/côté',wStep:2.5,restS:75,ov:'reps', tip:'Pied arrière posé sur le banc, pied avant assez loin devant · Haltères dans chaque main (même légers, ça brûle) · <strong>Descente verticale, genou avant au-dessus de la cheville</strong> · <strong>Descente en 4 secondes</strong> — le tempo lent est ce qui rend l\'exercice difficile avec peu de charge · Buste légèrement penché en avant · 12–15 reps/côté'},
+        {id:'vb_rdl',         name:'RDL haltères tempo lent',       sets:3,rMin:15,rMax:20,wDef:10,wUnit:'kg/côté',wStep:2.5,restS:60,ov:'none', tip:'Haltères devant les cuisses · <strong>Bassin neutre avant de descendre</strong> · Pousse les hanches vers l\'arrière, haltères glissent le long des jambes · <strong>Descente en 4 secondes</strong> — le tempo lent compense le poids léger en maintenant la tension ischio · Remontée avec extension de hanche · 15–20 reps/côté'},
+        {id:'vb_abduction_s', name:'Abduction assise élastique',    sets:3,rMin:20,rMax:25,wDef:0, wUnit:'corps', wStep:0,  restS:60,ov:'reps', tip:'Assise sur le banc, élastique sur les genoux (ou sans si pas d\'élastique : résiste toi-même avec les mains) · Pieds à plat, genoux à 90° · <strong>Écarte les genoux lentement, reviens en résistant</strong> · L\'assise maximise le recrutement du moyen fessier · Squeeze 1s en fin d\'ouverture · 20–25 reps'},
+      ]
+    ]
+  },
+  voyage_upper_bench:{
+    name:'Haut du corps Voyage (banc + haltères légers)', type:'Hôtel — banc disponible', icon:'🏨',
+    cycles:[
+      [// Séance unique — cycle ignoré, toujours utilisé
+        {id:'vub_press',      name:'Développé couché haltères',     sets:4,rMin:12,rMax:15,wDef:8, wUnit:'kg/côté',wStep:2,  restS:75,ov:'reps', tip:'Allongée sur le banc, pieds au sol · Haltères au niveau de la poitrine, coudes à 45° · <strong>Poussée vers le haut, descente en 4 secondes</strong> · Poids légers à l\'hôtel ? Descends lentement et fais une pause 1s poitrine — c\'est là que se passe le travail · Ne verrouille pas les coudes en haut · 12–15 reps'},
+        {id:'vub_row',        name:'Rowing haltère unilatéral',      sets:3,rMin:15,rMax:20,wDef:8, wUnit:'kg',    wStep:2.5,restS:60,ov:'reps', tip:'Genou et main du même côté posés sur le banc · Dos plat, bassin neutre · <strong>Tire le coude vers le plafond</strong> · Omoplate rétractée en haut, squeeze 1s · <strong>Descente en 4 secondes</strong> — bras tendu au bas · Avec des haltères légers, le tempo lent crée la tension nécessaire · 15–20 reps/côté'},
+        {id:'vub_lateral',    name:'Élévation latérale tempo',       sets:3,rMin:15,rMax:20,wDef:4, wUnit:'kg/côté',wStep:1,  restS:60,ov:'reps', tip:'Debout ou assise · Coudes légèrement fléchis · <strong>Montée en 2s, descente en 4 secondes</strong> — le tempo lent est la clé : à 4 kg avec 4s excentrique, le deltoïde latéral travaille vraiment · Arrête à hauteur d\'épaule · 15–20 reps'},
+        {id:'vub_curl',       name:'Curl biceps haltères',            sets:3,rMin:15,rMax:20,wDef:6, wUnit:'kg/côté',wStep:1,  restS:60,ov:'reps', tip:'Debout ou assise · Coudes fixes contre le buste · <strong>Supination du poignet en montant</strong> (paume vers le plafond au sommet) · <strong>Descente en 4 secondes</strong> — c\'est là que se passe le vrai travail · Alterne les bras · 15–20 reps'},
+      ]
+    ]
   }
 };
 
@@ -864,7 +896,8 @@ function calcKcal(activityFactor,deficit=300){
 // ═══════════════════════════════════════════════
 const N_SESSIONS=[
   {id:'legs',  icon:'🍑',name:'Jambes / Fessiers',sub:'Squats, hip thrust, fentes…',  goal:110,ratio:'1.8g/kg',color:'#d4688a',get kcal(){return calcKcal(1.55,300)},why:'Priorité absolue. Les fessiers sont stimulés ici — la protéine construit ce que l\'entraînement a déclenché.'},
-  {id:'voyage',icon:'✈️',name:'Voyage / Hôtel',  sub:'Jambes ou haut — poids limités',  goal:110,ratio:'1.8g/kg',color:'#b8a0d4',get kcal(){return calcKcal(1.55,300)},why:'Même objectif protéique qu\'une séance normale. Le tempo lent et l\'unilatéral compensent la charge réduite — ne relâche pas sur la nutrition en déplacement.'},
+  {id:'voyage',      icon:'✈️',name:'Voyage / Hôtel (poids limités)',sub:'Jambes ou haut — poids légers',  goal:98, ratio:'1.6g/kg',color:'#b8a0d4',get kcal(){return calcKcal(1.55,300)},why:'Stimulus réduit par rapport à une séance normale — poids allégés et volume moindre. 1,6g/kg suffit amplement pour maintenir les gains pendant le déplacement.'},
+  {id:'voyage_bench',icon:'🏨',name:'Voyage / Hôtel (banc dispo)',    sub:'Jambes ou haut — haltères légers',goal:98, ratio:'1.6g/kg',color:'#9b7ecf',get kcal(){return calcKcal(1.55,300)},why:'Banc disponible mais haltères limités — le tempo lent compense. Stimulus intermédiaire, objectif identique à une séance voyage standard : 1,6g/kg suffit.'},
   {id:'upper', icon:'💪',name:'Haut du corps',   sub:'Bras, dos, épaules, chest',     goal:98, ratio:'1.6g/kg',color:'#94b8e0',get kcal(){return calcKcal(1.55,300)},why:'Maintien du tonus. Objectif confortable, l\'alimentation normale suffit.'},
   {id:'boxing',icon:'🥊',name:'Boxe / Combat',   sub:'Boxe, MMA, kickboxing…',         goal:98, ratio:'1.6g/kg',color:'#e8c87a',get kcal(){return calcKcal(1.55,300)},why:'Cardio explosif + recrutement important. Protéine suffisante pour récupérer.'},
   {id:'cardio',icon:'🏃',name:'Cardio / Running',sub:'Course, vélo, HIIT, natation',   goal:90, ratio:'1.5g/kg',color:'#e0a87c',get kcal(){return calcKcal(1.50,300)},why:'Le cardio favorise la perte de gras. Mange normalement et bien.'},
@@ -1059,6 +1092,8 @@ const MOTIVATIONS={
   upper_j2:['Bras toniques ✅ Les pompes progressent, les bras se définissent. Pile dans l\'objectif.','Séance bras terminée 💪 Tu ressens la différence ? C\'est ça la progression. Continue.','Belle séance ! Les pompes au sol arrivent — tu poses les fondations aujourd\'hui.'],
   voyage_legs:['✈️ Séance voyage bouclée. Pas d\'excuse, pas de compromis. Le fessier a bossé autant qu\'en salle.','Déplacement ≠ pause. Le tempo lent d\'aujourd\'hui compense la charge — le stimulus est réel. Bravo.','Hôtel battu 💜 La régularité même en déplacement, c\'est ce qui sépare celles qui progressent des autres.'],
   voyage_upper:['✈️ Haut du corps coché. Pompes + rowing + élévations — le dos et les épaules n\'ont pas chômé.','Séance haut du corps voyage terminée 💙 Le tempo lent à 4s excentrique, c\'est du vrai travail. Bien joué.','Déplacement géré ✅ Le haut du corps maintenu, le programme respecté. Continue comme ça.'],
+  voyage_legs_bench:['🏨 Fessiers avec banc — le vrai luxe de cet hôtel. Hip thrust + bulgare : du sérieux. Bravo.','Banc dispo = programme complet. Le fessier n\'a rien loupé aujourd\'hui 💜 Continue comme ça.','Séance jambes voyage niveau supérieur ✅ Avec banc, le stimulus est quasi identique à la salle. Bien joué.'],
+  voyage_upper_bench:['🏨 Développé couché + rowing + épaules : le haut du corps n\'a rien à envier à la salle. Beau travail.','Banc + haltères = séance complète 💙 Le dos, les pecs, les épaules — tout est coché. Continue.','Séance haut du corps voyage pleine intensité ✅ Avec un vrai banc, pas d\'excuse pour lever la barre. Bravo.'],
 };
 
 // ═══════════════════════════════════════════════
@@ -1105,9 +1140,9 @@ function getCurrentCycle(){
 }
 function getExercises(sessionId){
   const{cycle}=getCurrentCycle();
-  const isVoyage=sessionId==='voyage_legs'||sessionId==='voyage_upper';
+  const isVoyage=sessionId==='voyage_legs'||sessionId==='voyage_upper'||sessionId==='voyage_legs_bench'||sessionId==='voyage_upper_bench';
   const base=isVoyage?PROGRAM[sessionId].cycles[0]:(PROGRAM[sessionId].cycles[cycle-1]||[]);
-  const isLegs=sessionId==='legs_j1'||sessionId==='legs_j2'||sessionId==='voyage_legs';
+  const isLegs=sessionId==='legs_j1'||sessionId==='legs_j2'||sessionId==='voyage_legs'||sessionId==='voyage_legs_bench';
   return [...WARMUP,...base,...(isLegs?CORE_BLOCK:[])];
 }
 
@@ -1514,7 +1549,7 @@ function renderWater(){
 function setNSession(id){
   const{s,t,d}=getNDay();d.type=id;s[t]=d;save(s);renderNutrition();renderWater();
   const sess=N_SESSIONS.find(x=>x.id===id);
-  showToast(`${sess.icon} Objectif : ${sess.goal}g · 💧 ${N_SESSIONS.find(x=>x.id===id)&&['legs','upper','boxing','cardio','voyage'].includes(id)?'2.5L':'2L'}`);
+  showToast(`${sess.icon} Objectif : ${sess.goal}g · 💧 ${N_SESSIONS.find(x=>x.id===id)&&['legs','upper','boxing','cardio','voyage','voyage_bench'].includes(id)?'2.5L':'2L'}`);
 }
 
 function addManual(){
@@ -1846,8 +1881,10 @@ const SCHED_OPTIONS=[
   {value:'legs_j2', label:'Fessiers Volume',  icon:'🍑', type:'legs'},
   {value:'upper_j1',label:'Dos Sculpté',      icon:'🏋️', type:'upper'},
   {value:'upper_j2',label:'Bras & Triceps',   icon:'💪', type:'upper'},
-  {value:'voyage_legs', label:'Fessiers Voyage',   icon:'✈️', type:'legs'},
-  {value:'voyage_upper',label:'Haut du corps Voyage',icon:'✈️',type:'upper'},
+  {value:'voyage_legs',        label:'Fessiers Voyage',          icon:'✈️', type:'legs'},
+  {value:'voyage_upper',       label:'Haut du corps Voyage',     icon:'✈️', type:'upper'},
+  {value:'voyage_legs_bench',  label:'Fessiers Voyage+ (banc)',  icon:'🏨', type:'legs'},
+  {value:'voyage_upper_bench', label:'Haut du corps Voyage+ (banc)',icon:'🏨',type:'upper'},
   {value:'rest',    label:'Repos',            icon:'😴', type:'rest'},
 ];
 const DAY_NAMES=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
