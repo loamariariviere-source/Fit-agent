@@ -532,6 +532,13 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
       <div class="date-badge" id="w-date"></div>
     </div>
     <div class="cycle-banner" id="cycle-banner"></div>
+
+    <!-- Vue semaine -->
+    <div class="section-title">📅 Cette semaine</div>
+    <div class="card" style="padding:12px 10px" id="w-week-card">
+      <div id="w-week-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center"></div>
+    </div>
+
     <div class="section-title">Choisir ta séance</div>
     <div class="w-sess-grid">
       <button class="w-sess-btn legs" onclick="startWorkout('legs_j1')">
@@ -596,9 +603,12 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
     </div>
     <div style="padding:0 15px 80px" id="w-exo-list"></div>
     <div style="position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+70px);left:0;right:0;
-      padding:10px 15px;background:var(--bg);border-top:1px solid var(--border)">
-      <button class="btn btn-green" id="w-finish-btn" onclick="finishSession()" style="display:none">
-        🏁 Terminer la séance
+      padding:10px 15px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="quickFinishSession()" style="flex:1;font-size:.82rem">
+        ⚡ Séance faite
+      </button>
+      <button class="btn btn-green" id="w-finish-btn" onclick="finishSession()" style="display:none;flex:1">
+        🏁 Tout logué ✓
       </button>
     </div>
   </div>
@@ -1202,7 +1212,7 @@ const CORE_BLOCK=[
   {id:'core_sidepl',  name:'💪 Core · Plank latéral',        sets:3,rMin:35,rMax:35,wDef:0,wUnit:'s/côté', wStep:0,restS:30,ov:'none',
    tip:'Avant-bras au sol, corps aligné de la tête aux pieds · <strong>Pousse la hanche vers le plafond</strong> · Ne laisse pas la hanche tomber · 35 secondes par côté · Renforce le carré des lombes et stabilise le bassin latéralement'},
   {id:'core_hipflex', name:'💪 Core · Étirement Hip Flexors', sets:3,rMin:30,rMax:30,wDef:0,wUnit:'s/côté', wStep:0,restS:20,ov:'none',
-   tip:'Fente basse, genou arrière au sol · <strong>Bascule le bassin vers l\'arrière</strong> (coccyx vers le bas) · Sens l\'étirement dans l\'avant de la cuisse arrière (psoas) · 30 secondes par côté · C\'est l\'antagoniste direct de ta cambrure naturelle 🍑'},
+   tip:'<strong>Position de départ :</strong> un genou au sol, l\'autre pied bien en avant (genou à 90°) · <strong>Ce qu\'on cherche :</strong> rentrer le bas du ventre et pousser le bassin vers l\'avant et vers le bas — imagine que tu veux coller ta ceinture contre le sol · Tu dois sentir un étirement à l\'avant de la hanche de la jambe arrière (là où la cuisse rejoint le bassin), PAS dans le bas du dos · Si tu sens le dos, c\'est que tu te cambres — rentre le ventre et recommence · 30 secondes par côté · C\'est le muscle (psoas) qui tire sur ta cambrure : l\'étirer réduira la tension dans le bas du dos et libèrera les fessiers'},
 ];
 
 // ═══════════════════════════════════════════════
@@ -1468,6 +1478,21 @@ function skipRest(){
   document.getElementById('rest-time').style.color='var(--acc)';
 }
 
+function quickFinishSession(){
+  // Valide toutes les séries non encore cochées avec les valeurs par défaut
+  WS.exercises.forEach(ex=>{
+    (WS.logged[ex.id]||[]).forEach(s=>{
+      if(!s.done){
+        s.done=true;
+        if(!s.r)s.r=ex.rMin||0;
+      }
+    });
+  });
+  clearInterval(_restInterval);
+  document.getElementById('rest-overlay').classList.remove('on');
+  finishSession();
+}
+
 function finishSession(){
   const sessionId=WS.activeSession;
   const today=getToday();
@@ -1592,13 +1617,96 @@ function handlePhoto(evt){
   reader.readAsDataURL(file);
 }
 
+// ═══════════════════════════════════════════════
+// SESSION HOME — vue semaine + badges séances
+// ═══════════════════════════════════════════════
+function renderSessionHome(){
+  renderCycleBanner();
+  renderWeeklySummary();
+  markDoneSessionBtns();
+}
+
+function renderWeeklySummary(){
+  const ws=getWStore();
+  const sessions=ws.workout.sessions||{};
+  const today=getToday();
+
+  // Lundi de la semaine courante
+  const now=new Date();
+  const dow=now.getDay()||7;
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-dow+1);
+
+  const DAY_SHORT=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const grid=document.getElementById('w-week-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);
+    d.setDate(monday.getDate()+i);
+    const dateStr=d.toISOString().split('T')[0];
+    const isToday=dateStr===today;
+    const isFuture=dateStr>today;
+
+    // Séances faites ce jour
+    const done=Object.values(sessions)
+      .filter(s=>s.date===dateStr&&s.complete);
+    const icons=done.map(s=>PROGRAM[s.sessionId]?.icon||'💪').join('');
+    const names=done.map(s=>PROGRAM[s.sessionId]?.name||s.sessionId).join('\n');
+
+    const cell=document.createElement('div');
+    cell.style.cssText=`border-radius:8px;padding:6px 2px;font-size:.65rem;cursor:default;
+      background:${isToday?'rgba(212,104,138,.15)':'var(--s2)'};
+      border:1px solid ${isToday?'var(--acc)':'var(--border)'};
+      color:${isFuture?'var(--border)':isToday?'var(--a2)':'var(--text)'}`;
+    cell.title=names||'';
+    cell.innerHTML=`
+      <div style="font-weight:800;font-size:.7rem">${DAY_SHORT[i]}</div>
+      <div style="font-size:.72rem;color:var(--muted)">${d.getDate()}</div>
+      <div style="font-size:.9rem;margin-top:2px;min-height:18px">${done.length?icons:'·'}</div>
+      ${done.length?`<div style="font-size:.6rem;color:var(--green);font-weight:700">✓</div>`:''}
+    `;
+    grid.appendChild(cell);
+  }
+}
+
+function markDoneSessionBtns(){
+  const ws=getWStore();
+  const sessions=ws.workout.sessions||{};
+  const today=getToday();
+  const doneToday=new Set(
+    Object.values(sessions)
+      .filter(s=>s.date===today&&s.complete)
+      .map(s=>s.sessionId)
+  );
+
+  // Met à jour chaque bouton de séance
+  document.querySelectorAll('.w-sess-btn').forEach(btn=>{
+    const onclick=btn.getAttribute('onclick')||'';
+    const m=onclick.match(/startWorkout\('([^']+)'\)/);
+    if(!m)return;
+    const sessId=m[1];
+    // Retire l'ancien badge si présent
+    btn.querySelectorAll('.done-badge').forEach(el=>el.remove());
+    if(doneToday.has(sessId)){
+      const badge=document.createElement('span');
+      badge.className='done-badge';
+      badge.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(125,206,160,.25);border-top:1px solid rgba(125,206,160,.4);font-size:.65rem;font-weight:800;color:var(--green);padding:3px 0;border-radius:0 0 9px 9px;text-align:center';
+      badge.textContent='✓ Faite aujourd\'hui';
+      btn.style.position='relative';
+      btn.appendChild(badge);
+    }
+  });
+}
+
 function backToHome(){
   WS.phase='home';
   WS.activeSession=null;
   document.getElementById('w-active').style.display='none';
   document.getElementById('session-complete').classList.remove('on');
   document.getElementById('w-home').style.display='block';
-  renderCycleBanner();
+  renderSessionHome();
   renderHistory();
 }
 
@@ -2364,7 +2472,7 @@ function goTab(tab){
   });
   if(tab==='nutrition'){_nutriDate=getToday();renderNutrition();renderWater();}
   if(tab==='history')renderHistory();
-  if(tab==='seance'&&WS.phase==='home')renderCycleBanner();
+  if(tab==='seance'&&WS.phase==='home')renderSessionHome();
   if(tab==='progress')renderProgress();
 }
 
@@ -2397,7 +2505,7 @@ document.getElementById('w-date').textContent=new Date().toLocaleDateString('fr-
 // Init renders
 renderNutrition();
 renderWater();
-renderCycleBanner();
+renderSessionHome();
 renderSchedule();
 </script>
 </body>
