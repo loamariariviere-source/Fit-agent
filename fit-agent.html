@@ -495,6 +495,19 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
   <div class="section-title" id="n-meals-title">🍽️ Repas du jour</div>
   <div class="meals" id="n-meals"><div class="no-meals" id="n-no-meals">Aucun repas enregistré</div></div>
 
+  <!-- Export / Import -->
+  <div class="section-title">💾 Sauvegarde des données</div>
+  <div class="card" style="padding:14px">
+    <div style="font-size:.78rem;color:var(--muted);margin-bottom:12px;line-height:1.5">Les données sont stockées localement sur l'appareil. <strong>Exporte avant de remplacer le fichier</strong> pour ne pas perdre ton historique.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="exportData()" style="flex:1">⬇️ Exporter</button>
+      <label class="btn btn-ghost btn-sm" style="flex:1;text-align:center;cursor:pointer">
+        ⬆️ Importer
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none"/>
+      </label>
+    </div>
+  </div>
+
   <!-- Mobile hint -->
   <div class="section-title">📱 Sur téléphone</div>
   <div class="mobile-hint">
@@ -942,7 +955,9 @@ const FOOD_DB=[
   {kw:['thon','tuna'],p100:29,c100:116,g:100,label:'Thon en boîte (100g)'},
   {kw:['poisson','merlu','sole'],p100:18,c100:82,g:150,label:'Poisson blanc (150g)'},
   {kw:['crevettes','gambas'],p100:20,c100:99,g:100,label:'Crevettes (100g)'},
-  {kw:['jambon','jambon blanc','jambon cru','jambon de parme','prosciutto'],p100:18,c100:107,g:60,label:'Jambon (2 tranches)'},
+  {kw:['jambon blanc','jambon cuit','jambon de paris'],p100:18,c100:107,g:60,label:'Jambon blanc (2 tranches)'},
+  {kw:['jambon cru','jambon de bayonne','jambon sec','jambon de parme','prosciutto','serrano'],p100:22,c100:145,g:40,label:'Jambon cru/sec (40g)'},
+  {kw:['jambon','jambon de montagne'],p100:18,c100:107,g:60,label:'Jambon (2 tranches)'},
   {kw:['porc','côte de porc','filet de porc','rôti de porc','échine','longe'],p100:25,c100:242,g:150,label:'Porc (150g)'},
   {kw:['agneau','côtelette d\'agneau','gigot','souris d\'agneau'],p100:25,c100:294,g:150,label:'Agneau (150g)'},
   {kw:['veau','escalope de veau','côte de veau'],p100:24,c100:170,g:150,label:'Veau (150g)'},
@@ -1087,7 +1102,49 @@ const FOOD_DB=[
   // ── Snacks protéinés ─────────────────────────────
   {kw:['barre protéinée','barre de protéine','protein bar'],p100:33,c100:380,g:50,label:'Barre protéinée (50g)'},
   {kw:['müsli protéiné','muesli protéiné'],p100:15,c100:380,g:50,label:'Müsli protéiné (50g)'},
-  // ── Condiments ───────────────────────────────────
+  // ── Graisses de cuisson (CIQUAL 2020) ───────────────
+  {kw:['beurre'],p100:0.6,c100:717,g:10,label:'Beurre (10g)'},
+  {kw:['huile d\'olive','huile végétale','huile de coco','huile de tournesol','huile de colza','huile'],p100:0,c100:884,g:10,label:'Huile (10g)'},
+  {kw:['crème entière','crème fraîche entière','crème liquide','crème fleurette'],p100:2.1,c100:292,g:30,label:'Crème entière (30g)'},
+  {kw:['crème légère','crème semi-épaisse'],p100:2.7,c100:156,g:30,label:'Crème légère (30g)'},
+  // ── Poissons fumés ───────────────────────────────────
+  {kw:['saumon fumé'],p100:20,c100:142,g:100,label:'Saumon fumé (100g)'},
+  {kw:['truite fumée'],p100:21,c100:136,g:100,label:'Truite fumée (100g)'},
+  // ── Viennoiseries ────────────────────────────────────
+  {kw:['croissant'],p100:9,c100:406,g:60,label:'Croissant (1 pièce)'},
+  {kw:['pain au chocolat','chocolatine'],p100:7,c100:411,g:60,label:'Pain au chocolat (1 pièce)'},
+  {kw:['brioche'],p100:9,c100:365,g:40,label:'Brioche (1 tranche)'},
+  {kw:['muffin'],p100:5,c100:380,g:80,label:'Muffin (1 pièce)'},
+  // ── Alcool ───────────────────────────────────────────
+  {kw:['vin rouge','vin blanc','vin rosé','verre de vin','vin'],p100:0.1,c100:85,g:150,label:'Vin (1 verre)'},
+  {kw:['bière blonde','bière brune','bière','beer'],p100:0.3,c100:43,g:330,label:'Bière (33cl)'},
+  {kw:['champagne','prosecco','pétillant'],p100:0.3,c100:76,g:125,label:'Champagne (1 flûte)'},
+  {kw:['cocktail','mojito','spritz','apéro'],p100:0.1,c100:110,g:200,label:'Cocktail (20cl)'},
+  // ── World food & plats courants ──────────────────────
+  {kw:['sushi','maki','california','nigiri','temaki'],p100:4,c100:143,g:200,label:'Sushis (200g)'},
+  {kw:['poke bowl','poké','poke'],p100:14,c100:165,g:400,label:'Poke bowl (400g)'},
+  {kw:['pad thai','nouilles sautées'],p100:10,c100:180,g:300,label:'Pad thaï (300g)'},
+  {kw:['curry de poulet','curry de légumes','curry'],p100:8,c100:120,g:300,label:'Curry (300g)'},
+  {kw:['wrap','burrito'],p100:12,c100:250,g:200,label:'Wrap (200g)'},
+  {kw:['nem','nems','rouleau de printemps'],p100:6,c100:155,g:80,label:'Nems (2 pièces)'},
+  // ── Viandes cuites ───────────────────────────────────
+  {kw:['tartare','steak tartare'],p100:18,c100:155,g:150,label:'Tartare (150g)'},
+  {kw:['poulet rôti'],p100:25,c100:189,g:150,label:'Poulet rôti (150g)'},
+  {kw:['escalope panée','cordon bleu','schnitzel'],p100:15,c100:220,g:150,label:'Escalope panée (150g)'},
+  {kw:['raclette'],p100:23,c100:339,g:50,label:'Raclette (50g)'},
+  // ── Desserts ─────────────────────────────────────────
+  {kw:['glace','gelato'],p100:3.5,c100:200,g:100,label:'Glace (1 boule)'},
+  {kw:['sorbet'],p100:0.5,c100:110,g:100,label:'Sorbet (1 boule)'},
+  {kw:['mousse au chocolat'],p100:5,c100:213,g:120,label:'Mousse au chocolat (120g)'},
+  {kw:['riz au lait'],p100:3,c100:108,g:150,label:'Riz au lait (150g)'},
+  {kw:['compote','compote de pommes'],p100:0.3,c100:46,g:100,label:'Compote (100g)'},
+  {kw:['tarte aux pommes','tarte au citron','tarte'],p100:4,c100:280,g:100,label:'Tarte (1 part)'},
+  {kw:['gâteau','brownie','fondant'],p100:5,c100:390,g:80,label:'Gâteau (1 part)'},
+  {kw:['yaourt à boire','actimel','yakult'],p100:3,c100:60,g:100,label:'Yaourt à boire (100ml)'},
+  // ── Protéines végétales supp. ────────────────────────
+  {kw:['seitan'],p100:25,c100:167,g:100,label:'Seitan (100g)'},
+  {kw:['soja texturé','pvt','tsps','protéines de soja'],p100:50,c100:340,g:30,label:'Soja texturé (30g sec)'},
+  // ── Condiments ───────────────────────────────────────
   {kw:['sauce soja','tamari'],p100:8,c100:53,g:15,label:'Sauce soja (15ml)'},
   {kw:['tahini','purée de sésame'],p100:17,c100:595,g:20,label:'Tahini (20g)'},
   {kw:['graines de sésame','sésame'],p100:18,c100:573,g:15,label:'Graines de sésame (15g)'},
@@ -1174,6 +1231,10 @@ function isUni(exoId){return UNILATERAL_EXOS.has(exoId)}
 // PROGRAM UTILITIES
 // ═══════════════════════════════════════════════
 
+// Override manuel de la semaine programme
+function getWeekOverride(){const v=localStorage.getItem('fit_week_override');return v?parseInt(v):null}
+function setWeekOverride(w){if(w)localStorage.setItem('fit_week_override',w);else localStorage.removeItem('fit_week_override')}
+
 // Semaines ISO (lundi-based) — clé ex. "2026-W19"
 function getCalWeekKey(dateStr){
   const d=new Date(dateStr+'T12:00:00');
@@ -1195,12 +1256,22 @@ function isWeekComplete(sessionsInWeek){
 }
 
 function getCurrentCycle(){
+  // Override manuel prioritaire
+  const override=getWeekOverride();
+  if(override){
+    const week=override;
+    const weekInCycle=((week-1)%4)+1;
+    const cycle=Math.min(3,Math.floor((week-1)/4)+1);
+    if(week>12)return{cycle:3,week:Math.min(week,13),weekInCycle:4,phase:'deload',manual:true};
+    if(week===13)return{cycle:3,week:13,weekInCycle:4,phase:'done',manual:true};
+    return{cycle,week,weekInCycle,phase:'training',manual:true};
+  }
+
   const s=getWStore();
   const sessions=Object.values(s.workout.sessions||{});
   const blockStart=getProgStart();
   const currentWk=getCalWeekKey(getToday());
 
-  // Groupe les séances par semaine calendaire
   const weekMap={};
   sessions
     .filter(sess=>MAIN_SESSION_TYPES.has(sess.sessionId)&&sess.complete&&sess.date>=blockStart)
@@ -1210,7 +1281,6 @@ function getCurrentCycle(){
       weekMap[wk].push(sess);
     });
 
-  // Compte uniquement les semaines PASSÉES où les 4 séances sont faites
   const completedWks=Object.entries(weekMap)
     .filter(([wk,wSessions])=>wk!==currentWk&&isWeekComplete(wSessions))
     .length;
@@ -1558,6 +1628,15 @@ function renderCycleBanner(){
   }
   const dots=Array.from({length:4},(_,i)=>`<div class="week-dot ${i<weekInCycle-1?'done':i===weekInCycle-1?'current':''}"></div>`).join('');
   const isDeloadWeek=weekInCycle===4;
+  const manualBadge=phase!=='deload'&&phase!=='done'?(
+    `<div style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <select id="week-override-sel" onchange="applyWeekOverride(this.value)"
+        style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text);font-size:.75rem;cursor:pointer">
+        ${Array.from({length:12},(_,i)=>`<option value="${i+1}"${week===i+1?' selected':''}>Semaine ${i+1} — Cycle ${Math.min(3,Math.floor(i/4)+1)}, S${(i%4)+1}</option>`).join('')}
+      </select>
+      ${getWeekOverride()?`<button onclick="applyWeekOverride(null)" style="background:none;border:none;color:var(--muted);font-size:.72rem;cursor:pointer;padding:0">↺ Auto</button>`:''}
+    </div>`
+  ):'';
   // Checklist séances cette semaine
   const s2=getWStore();
   const currentWk=getCalWeekKey(getToday());
@@ -1576,13 +1655,26 @@ function renderCycleBanner(){
   const weekProgressNote=`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${weekCheckHTML}</div>`
     +(allDoneThisWeek?`<div style="font-size:.71rem;color:var(--green);margin-top:4px">🎉 Semaine complète — avancement confirmé la semaine prochaine</div>`
     :`<div style="font-size:.71rem;color:var(--muted);margin-top:4px">La semaine avance quand les 4 séances sont cochées</div>`);
+  const manualTag=getWeekOverride()?`<span style="font-size:.65rem;background:rgba(232,200,122,.15);border:1px solid rgba(232,200,122,.3);color:var(--gold);border-radius:6px;padding:2px 6px;margin-left:6px">✏️ manuel</span>`:'';
   el.innerHTML=`
     <div class="cycle-name">Cycle ${cycle} — ${cycleNames[cycle-1]}</div>
-    <div class="cycle-sub">Semaine programme ${week} · ${weekInCycle}/4 semaines de ce cycle</div>
+    <div class="cycle-sub">Semaine programme ${week}${manualTag} · ${weekInCycle}/4 semaines de ce cycle</div>
     <div class="week-dots">${dots}</div>
     ${weekProgressNote}
+    ${manualBadge}
     ${isDeloadWeek?`<div style="margin-top:10px;padding:8px 12px;border-radius:9px;background:rgba(125,206,160,.1);border:1px solid rgba(125,206,160,.25);font-size:.78rem;color:var(--green)">🌿 <strong>Semaine 4 — Décharge</strong> · Réduis toutes tes charges de 30% cette semaine. Même exercices, même sets, moins de poids. La surcompensation se produit pendant la récupération, pas pendant l'effort. Tu reprendras plus forte la semaine prochaine.</div>`:''}
   `;
+}
+
+function applyWeekOverride(val){
+  if(val===null||val==='null'){
+    setWeekOverride(null);
+    showToast('↺ Calcul automatique rétabli');
+  } else {
+    setWeekOverride(parseInt(val));
+    showToast(`✏️ Semaine ${val} définie manuellement`);
+  }
+  renderCycleBanner();
 }
 
 function startNewBlock(){
@@ -1703,7 +1795,7 @@ function runEst(){
     let mod=1;
     for(const[w,f]of Object.entries(MODS)){if(localBefore.includes(w)){mod=f;break}}
     // Détection quantité en g/ml : fenêtre locale autour du mot-clé
-    const localAround=txt.substring(Math.max(0,matchIdx-10),Math.min(txt.length,matchIdx+kNorm.length+55));
+    const localAround=txt.substring(Math.max(0,matchIdx-15),Math.min(txt.length,matchIdx+kNorm.length+80));
     let gramMatch=localAround.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grammes?|ml)\b/);
     // Fallback : si pas de grammes dans la fenêtre proche, prend le DERNIER gramme dans localBefore (ex: "55g de magret")
     if(!gramMatch){const allG=[...localBefore.matchAll(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grammes?|ml)\b/g)];if(allG.length>0)gramMatch=allG[allG.length-1];}
@@ -1762,6 +1854,40 @@ function pushMeal(name,prot,cal,mealType){
 
 function deleteMeal(i){
   const{s,t,d}=getNDay();d.meals.splice(i,1);s[t]=d;save(s);renderNutrition();
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT / IMPORT DONNÉES
+// ═══════════════════════════════════════════════
+function exportData(){
+  const data={
+    [STORE_KEY]:localStorage.getItem(STORE_KEY),
+    fit_schedule_v1:localStorage.getItem('fit_schedule_v1'),
+    fit_prog_start:localStorage.getItem('fit_prog_start'),
+    exportedAt:new Date().toISOString()
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`loana-fit-backup-${getToday()}.json`;
+  a.click();
+  showToast('⬇️ Données exportées !');
+}
+function importData(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data[STORE_KEY])localStorage.setItem(STORE_KEY,data[STORE_KEY]);
+      if(data.fit_schedule_v1)localStorage.setItem('fit_schedule_v1',data.fit_schedule_v1);
+      if(data.fit_prog_start)localStorage.setItem('fit_prog_start',data.fit_prog_start);
+      showToast('✅ Données restaurées !');
+      renderNutrition();renderWater();renderCycleBanner();renderHistory();
+    }catch{showToast('⚠️ Fichier invalide');}
+  };
+  reader.readAsText(file);
 }
 
 function resetNutri(){
