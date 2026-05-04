@@ -1187,29 +1187,35 @@ function getCalWeekKey(dateStr){
 
 // Séances "gym" qui font avancer le programme — voyage exclues
 const MAIN_SESSION_TYPES=new Set(['legs_j1','legs_j2','upper_j1','upper_j2']);
+// Semaine COMPLÈTE = les 4 séances obligatoires dans la même semaine calendaire
+const REQUIRED_SESSIONS=['legs_j1','legs_j2','upper_j1','upper_j2'];
+function isWeekComplete(sessionsInWeek){
+  const done=new Set(sessionsInWeek.map(s=>s.sessionId));
+  return REQUIRED_SESSIONS.every(id=>done.has(id));
+}
 
-// Semaine programme = nb de semaines calendaires PASSÉES
-// (avant la semaine en cours) où au moins 1 séance principale a été complétée
-// depuis le début du bloc. Les séances voyage ne comptent PAS.
 function getCurrentCycle(){
   const s=getWStore();
   const sessions=Object.values(s.workout.sessions||{});
   const blockStart=getProgStart();
   const currentWk=getCalWeekKey(getToday());
 
-  const completedWks=new Set();
+  // Groupe les séances par semaine calendaire
+  const weekMap={};
   sessions
-    .filter(sess=>
-      MAIN_SESSION_TYPES.has(sess.sessionId)&&
-      sess.complete&&
-      sess.date>=blockStart
-    )
+    .filter(sess=>MAIN_SESSION_TYPES.has(sess.sessionId)&&sess.complete&&sess.date>=blockStart)
     .forEach(sess=>{
       const wk=getCalWeekKey(sess.date);
-      if(wk!==currentWk)completedWks.add(wk); // semaines passées seulement
+      if(!weekMap[wk])weekMap[wk]=[];
+      weekMap[wk].push(sess);
     });
 
-  const week=completedWks.size+1; // semaine programme actuelle (1-indexed)
+  // Compte uniquement les semaines PASSÉES où les 4 séances sont faites
+  const completedWks=Object.entries(weekMap)
+    .filter(([wk,wSessions])=>wk!==currentWk&&isWeekComplete(wSessions))
+    .length;
+
+  const week=completedWks+1;
   const weekInCycle=((week-1)%4)+1;
   const cycle=Math.min(3,Math.floor((week-1)/4)+1);
   if(week>12)return{cycle:3,week:Math.min(week,13),weekInCycle:4,phase:'deload'};
@@ -1552,16 +1558,24 @@ function renderCycleBanner(){
   }
   const dots=Array.from({length:4},(_,i)=>`<div class="week-dot ${i<weekInCycle-1?'done':i===weekInCycle-1?'current':''}"></div>`).join('');
   const isDeloadWeek=weekInCycle===4;
-  // Séances réalisées cette semaine calendaire (pour affichage)
+  // Checklist séances cette semaine
   const s2=getWStore();
   const currentWk=getCalWeekKey(getToday());
   const blockStart=getProgStart();
-  const thisWeekSessions=Object.values(s2.workout.sessions||{})
-    .filter(sess=>MAIN_SESSION_TYPES.has(sess.sessionId)&&sess.complete&&sess.date>=blockStart&&getCalWeekKey(sess.date)===currentWk);
-  const sessionsDoneThisWeek=thisWeekSessions.map(s=>PROGRAM[s.sessionId]?.name||s.sessionId);
-  const weekProgressNote=sessionsDoneThisWeek.length>0
-    ?`<div style="font-size:.72rem;color:var(--green);margin-top:6px">✓ Cette semaine : ${sessionsDoneThisWeek.join(' · ')}</div>`
-    :`<div style="font-size:.72rem;color:var(--muted);margin-top:6px">Aucune séance gym réalisée cette semaine</div>`;
+  const thisWeekDone=new Set(
+    Object.values(s2.workout.sessions||{})
+      .filter(sess=>MAIN_SESSION_TYPES.has(sess.sessionId)&&sess.complete&&sess.date>=blockStart&&getCalWeekKey(sess.date)===currentWk)
+      .map(sess=>sess.sessionId)
+  );
+  const weekCheckHTML=REQUIRED_SESSIONS.map(id=>{
+    const done=thisWeekDone.has(id);
+    const name=PROGRAM[id]?.name||id;
+    return`<span style="font-size:.71rem;color:${done?'var(--green)':'var(--muted)'}">${done?'✓':'○'} ${name}</span>`;
+  }).join('<span style="color:var(--border);margin:0 4px">·</span>');
+  const allDoneThisWeek=REQUIRED_SESSIONS.every(id=>thisWeekDone.has(id));
+  const weekProgressNote=`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">${weekCheckHTML}</div>`
+    +(allDoneThisWeek?`<div style="font-size:.71rem;color:var(--green);margin-top:4px">🎉 Semaine complète — avancement confirmé la semaine prochaine</div>`
+    :`<div style="font-size:.71rem;color:var(--muted);margin-top:4px">La semaine avance quand les 4 séances sont cochées</div>`);
   el.innerHTML=`
     <div class="cycle-name">Cycle ${cycle} — ${cycleNames[cycle-1]}</div>
     <div class="cycle-sub">Semaine programme ${week} · ${weekInCycle}/4 semaines de ce cycle</div>
