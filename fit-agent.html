@@ -320,6 +320,15 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .pt-date{position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:.58rem;
   color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);background:linear-gradient(transparent,rgba(0,0,0,.6));padding:6px 2px 2px}
 .pt-empty{font-size:1.5rem;color:var(--border)}
+/* ─ DATE NAV ─────────────────────────────────── */
+.date-nav{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px}
+.dnav-btn{background:var(--s2);border:1px solid var(--border);border-radius:8px;
+  width:30px;height:28px;color:var(--muted);font-size:.9rem;cursor:pointer;
+  touch-action:manipulation;display:flex;align-items:center;justify-content:center;line-height:1}
+.dnav-btn:active{opacity:.6}
+.dnav-btn:disabled{opacity:.25;cursor:default}
+.date-badge.past{background:rgba(232,200,122,.12);border-color:rgba(232,200,122,.4);color:var(--gold)}
+
 /* ─ MOBILE HINT ──────────────────────────────── */
 .mobile-hint{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;font-size:.78rem;color:var(--muted);line-height:1.55}
 .mobile-hint strong{color:var(--text)}
@@ -357,7 +366,11 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 <div class="tab on" id="tab-nutrition">
   <div class="header">
     <h1>🌸 Loana's <span>Protein Agent</span></h1>
-    <div class="date-badge" id="n-date"></div>
+    <div class="date-nav">
+      <button class="dnav-btn" onclick="navNutrDate(-1)" title="Jour précédent">‹</button>
+      <div class="date-badge" id="n-date"></div>
+      <button class="dnav-btn" id="n-nav-fwd" onclick="navNutrDate(1)" title="Jour suivant">›</button>
+    </div>
   </div>
 
   <!-- Session picker -->
@@ -479,7 +492,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
   </div>
 
   <!-- Meals list -->
-  <div class="section-title">🍽️ Repas du jour</div>
+  <div class="section-title" id="n-meals-title">🍽️ Repas du jour</div>
   <div class="meals" id="n-meals"><div class="no-meals" id="n-no-meals">Aucun repas enregistré</div></div>
 
   <!-- Mobile hint -->
@@ -490,7 +503,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
   </div>
 
   <div style="text-align:center;margin-top:20px">
-    <button class="btn btn-ghost btn-sm" onclick="resetNutri()">🔄 Réinitialiser aujourd'hui</button>
+    <button class="btn btn-ghost btn-sm" id="n-reset-btn" onclick="resetNutri()">🔄 Réinitialiser ce jour</button>
   </div>
 </div>
 
@@ -1103,8 +1116,19 @@ const STORE_KEY='fit_agent_v1';
 function load(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch{return{}}}
 function save(d){localStorage.setItem(STORE_KEY,JSON.stringify(d))}
 function getToday(){return new Date().toISOString().split('T')[0]}
-function getNDay(){const s=load();const t=getToday();if(!s[t])s[t]={type:null,meals:[]};return{s,t,d:s[t]}}
+// Date de navigation nutrition — modifiable rétroactivement
+let _nutriDate=getToday();
+function getNDay(){const s=load();const t=_nutriDate;if(!s[t])s[t]={type:null,meals:[]};return{s,t,d:s[t]}}
 function getWStore(){const s=load();if(!s.workout)s.workout={sessions:{},overload:{}};return s}
+
+function navNutrDate(delta){
+  const d=new Date(_nutriDate+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  const newDate=d.toISOString().split('T')[0];
+  if(newDate>getToday())return; // pas dans le futur
+  _nutriDate=newDate;
+  renderNutrition();renderWater();
+}
 
 // ═══════════════════════════════════════════════
 // WARM-UP & CORE BLOCKS
@@ -1123,6 +1147,28 @@ const CORE_BLOCK=[
   {id:'core_hipflex', name:'💪 Core · Étirement Hip Flexors', sets:3,rMin:30,rMax:30,wDef:0,wUnit:'s/côté', wStep:0,restS:20,ov:'none',
    tip:'Fente basse, genou arrière au sol · <strong>Bascule le bassin vers l\'arrière</strong> (coccyx vers le bas) · Sens l\'étirement dans l\'avant de la cuisse arrière (psoas) · 30 secondes par côté · C\'est l\'antagoniste direct de ta cambrure naturelle 🍑'},
 ];
+
+// ═══════════════════════════════════════════════
+// UNILATERAL EXERCISES — doublés dans le comptage
+// ═══════════════════════════════════════════════
+const UNILATERAL_EXOS=new Set([
+  // Gym — jambes
+  'kickback_j1c1','kickback_c2','kickback_c3',
+  'kickback_j2c1','kickback_j2c2','kickback_j2c3',
+  'bstance_rdl_c1','bstance_rdl_c2','bstance_rdl_c3',
+  'sl_hip_thrust',
+  // Gym — haut du corps
+  'row_db',
+  // Voyage — jambes
+  'v_hipthrust_uni','v_rdl_bstance','v_abduction','v_kickback',
+  // Voyage — haut du corps
+  'vu_row','vu_curl',
+  // Voyage avec banc — jambes
+  'vb_bulgare',
+  // Voyage avec banc — haut du corps
+  'vub_row','vub_curl',
+]);
+function isUni(exoId){return UNILATERAL_EXOS.has(exoId)}
 
 // ═══════════════════════════════════════════════
 // PROGRAM UTILITIES
@@ -1187,10 +1233,12 @@ function renderActiveSession(){
 
 function renderExoList(){
   const list=document.getElementById('w-exo-list');
-  const totalSets=WS.exercises.reduce((a,e)=>a+e.sets,0);
+  // Unilatéraux comptent ×2 (3 séries/côté = 6 effectives)
+  const totalSets=WS.exercises.reduce((a,e)=>a+e.sets*(isUni(e.id)?2:1),0);
   const doneSets=WS.exercises.reduce((a,e)=>{
     const logged=WS.logged[e.id]||[];
-    return a+logged.filter(s=>s.done).length;
+    const done=logged.filter(s=>s.done).length;
+    return a+done*(isUni(e.id)?2:1);
   },0);
   document.getElementById('w-progress-label').textContent=`${doneSets}/${totalSets} sets`;
 
@@ -1235,11 +1283,13 @@ function renderExoList(){
       </div>`;
     }).join('');
 
+    const uniLabel=isUni(ex.id)?` · <span style="color:var(--gold)">🦵 /côté · ${ex.sets*2} total</span>`:'';
+    const uniNote=isUni(ex.id)?`<div style="background:rgba(232,200,122,.1);border:1px solid rgba(232,200,122,.25);border-radius:7px;padding:7px 10px;font-size:.73rem;color:var(--gold);margin-bottom:10px">🦵 Exercice unilatéral · Alterne les côtés entre chaque série : G → repos → D → repos → G… · Le côté qui attend se repose pendant que l'autre travaille</div>`:'';
     card.innerHTML=`
       <div class="exo-header" onclick="toggleExo(${ei})">
         <div class="exo-left">
           <div class="exo-name">${ex.name}</div>
-          <div class="exo-target">${ex.sets} séries · ${ex.rMin||'max'}${ex.rMax&&ex.rMax!==ex.rMin?'–'+ex.rMax:''} reps · ${isBodyWeight?ex.wUnit:ex.wDef+' '+ex.wUnit}</div>
+          <div class="exo-target">${ex.sets} séries${isUni(ex.id)?'/côté':''} · ${ex.rMin||'max'}${ex.rMax&&ex.rMax!==ex.rMin?'–'+ex.rMax:''} reps · ${isBodyWeight?ex.wUnit:ex.wDef+' '+ex.wUnit}${isUni(ex.id)?' · <b>×2 côtés</b>':''}</div>
         </div>
         <div class="exo-status">
           <span class="exo-badge ${status}">${statusLabel}</span>
@@ -1248,6 +1298,7 @@ function renderExoList(){
       </div>
       <div class="exo-body" id="exo-body-${ei}">
         <div class="exo-tip">💡 ${ex.tip}</div>
+        ${uniNote}
         <div class="set-grid">${setsHTML}</div>
       </div>`;
     list.appendChild(card);
@@ -1367,8 +1418,8 @@ function showCompleteScreen(sessionId,poAlerts,week,weekInCycle){
   document.getElementById('c-emoji').textContent=['🎉','🔥','💜','🍑','💪'][Math.floor(Math.random()*5)];
   document.getElementById('c-title').textContent='Séance terminée !';
   document.getElementById('c-msg').textContent=msg;
-  // Stats
-  const totalSets=WS.exercises.reduce((a,e)=>a+e.sets,0);
+  // Stats — unilatéraux ×2
+  const totalSets=WS.exercises.reduce((a,e)=>a+e.sets*(isUni(e.id)?2:1),0);
   const exoCount=WS.exercises.length;
   document.getElementById('c-stats').innerHTML=`
     <div class="c-stat"><div class="csv">${exoCount}</div><div class="csl">Exercices</div></div>
@@ -1657,7 +1708,8 @@ function deleteMeal(i){
 }
 
 function resetNutri(){
-  if(!confirm('Réinitialiser aujourd\'hui ?'))return;
+  const lbl=_nutriDate===getToday()?'aujourd\'hui':_nutriDate;
+  if(!confirm(`Réinitialiser ${lbl} ?`))return;
   const{s,t}=getNDay();s[t]={type:null,meals:[]};save(s);renderNutrition();
   showToast('🔄 Réinitialisé');
 }
@@ -1669,7 +1721,19 @@ function renderNutrition(){
   const meals=d.meals||[];
   const totP=meals.reduce((a,m)=>a+m.prot,0);
   const totC=meals.reduce((a,m)=>a+m.cal,0);
-  document.getElementById('n-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const today=getToday();
+  const isToday=_nutriDate===today;
+  const yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];
+  const isYesterday=_nutriDate===yesterday;
+  const viewDate=new Date(_nutriDate+'T12:00:00');
+  const dateLbl=isToday?'Aujourd\'hui':isYesterday?'Hier':viewDate.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  const nDateEl=document.getElementById('n-date');
+  nDateEl.textContent=dateLbl;
+  nDateEl.className=isToday?'date-badge':'date-badge past';
+  const fwdBtn=document.getElementById('n-nav-fwd');
+  if(fwdBtn){fwdBtn.disabled=isToday;fwdBtn.style.opacity=isToday?'0.25':'1';}
+  const mealsTitle=document.getElementById('n-meals-title');
+  if(mealsTitle)mealsTitle.textContent=isToday?'🍽️ Repas du jour':'🍽️ Repas — '+dateLbl;
   // Session buttons
   document.getElementById('n-sess-grid').innerHTML=N_SESSIONS.map(ns=>`
     <button class="sess-btn${d.type===ns.id?' active':''}" style="--ac:${ns.color}" onclick="setNSession('${ns.id}')">
@@ -2115,6 +2179,7 @@ function goTab(tab){
     document.getElementById(`tab-${t}`).classList.toggle('on',t===tab);
     document.getElementById(`nav-${t}`).classList.toggle('on',t===tab);
   });
+  if(tab==='nutrition'){_nutriDate=getToday();renderNutrition();renderWater();}
   if(tab==='history')renderHistory();
   if(tab==='seance'&&WS.phase==='home')renderCycleBanner();
   if(tab==='progress')renderProgress();
