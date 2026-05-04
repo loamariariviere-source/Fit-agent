@@ -1173,16 +1173,48 @@ function isUni(exoId){return UNILATERAL_EXOS.has(exoId)}
 // ═══════════════════════════════════════════════
 // PROGRAM UTILITIES
 // ═══════════════════════════════════════════════
+
+// Semaines ISO (lundi-based) — clé ex. "2026-W19"
+function getCalWeekKey(dateStr){
+  const d=new Date(dateStr+'T12:00:00');
+  const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=dt.getUTCDay()||7;
+  dt.setUTCDate(dt.getUTCDate()+4-day);
+  const y=dt.getUTCFullYear();
+  const wn=Math.ceil((((dt-new Date(Date.UTC(y,0,1)))/86400000)+1)/7);
+  return`${y}-W${String(wn).padStart(2,'0')}`;
+}
+
+// Séances "gym" qui font avancer le programme — voyage exclues
+const MAIN_SESSION_TYPES=new Set(['legs_j1','legs_j2','upper_j1','upper_j2']);
+
+// Semaine programme = nb de semaines calendaires PASSÉES
+// (avant la semaine en cours) où au moins 1 séance principale a été complétée
+// depuis le début du bloc. Les séances voyage ne comptent PAS.
 function getCurrentCycle(){
-  const start=new Date(getProgStart());
-  const now=new Date();
-  const diffDays=Math.floor((now-start)/(1000*60*60*24));
-  const week=Math.max(1,Math.floor(diffDays/7)+1);
-  if(week<=4)return{cycle:1,week,weekInCycle:week,phase:'training'};
-  if(week<=8)return{cycle:2,week,weekInCycle:week-4,phase:'training'};
-  if(week<=12)return{cycle:3,week,weekInCycle:week-8,phase:'training'};
-  if(week===13)return{cycle:3,week:13,weekInCycle:4,phase:'deload'};
-  return{cycle:3,week:13,weekInCycle:4,phase:'done'};
+  const s=getWStore();
+  const sessions=Object.values(s.workout.sessions||{});
+  const blockStart=getProgStart();
+  const currentWk=getCalWeekKey(getToday());
+
+  const completedWks=new Set();
+  sessions
+    .filter(sess=>
+      MAIN_SESSION_TYPES.has(sess.sessionId)&&
+      sess.complete&&
+      sess.date>=blockStart
+    )
+    .forEach(sess=>{
+      const wk=getCalWeekKey(sess.date);
+      if(wk!==currentWk)completedWks.add(wk); // semaines passées seulement
+    });
+
+  const week=completedWks.size+1; // semaine programme actuelle (1-indexed)
+  const weekInCycle=((week-1)%4)+1;
+  const cycle=Math.min(3,Math.floor((week-1)/4)+1);
+  if(week>12)return{cycle:3,week:Math.min(week,13),weekInCycle:4,phase:'deload'};
+  if(week===13)return{cycle:3,week:13,weekInCycle:4,phase:'done'};
+  return{cycle,week,weekInCycle,phase:'training'};
 }
 function getExercises(sessionId){
   const{cycle}=getCurrentCycle();
@@ -1520,10 +1552,21 @@ function renderCycleBanner(){
   }
   const dots=Array.from({length:4},(_,i)=>`<div class="week-dot ${i<weekInCycle-1?'done':i===weekInCycle-1?'current':''}"></div>`).join('');
   const isDeloadWeek=weekInCycle===4;
+  // Séances réalisées cette semaine calendaire (pour affichage)
+  const s2=getWStore();
+  const currentWk=getCalWeekKey(getToday());
+  const blockStart=getProgStart();
+  const thisWeekSessions=Object.values(s2.workout.sessions||{})
+    .filter(sess=>MAIN_SESSION_TYPES.has(sess.sessionId)&&sess.complete&&sess.date>=blockStart&&getCalWeekKey(sess.date)===currentWk);
+  const sessionsDoneThisWeek=thisWeekSessions.map(s=>PROGRAM[s.sessionId]?.name||s.sessionId);
+  const weekProgressNote=sessionsDoneThisWeek.length>0
+    ?`<div style="font-size:.72rem;color:var(--green);margin-top:6px">✓ Cette semaine : ${sessionsDoneThisWeek.join(' · ')}</div>`
+    :`<div style="font-size:.72rem;color:var(--muted);margin-top:6px">Aucune séance gym réalisée cette semaine</div>`;
   el.innerHTML=`
     <div class="cycle-name">Cycle ${cycle} — ${cycleNames[cycle-1]}</div>
-    <div class="cycle-sub">Semaine ${week} · ${weekInCycle}/4 semaines de ce cycle</div>
+    <div class="cycle-sub">Semaine programme ${week} · ${weekInCycle}/4 semaines de ce cycle</div>
     <div class="week-dots">${dots}</div>
+    ${weekProgressNote}
     ${isDeloadWeek?`<div style="margin-top:10px;padding:8px 12px;border-radius:9px;background:rgba(125,206,160,.1);border:1px solid rgba(125,206,160,.25);font-size:.78rem;color:var(--green)">🌿 <strong>Semaine 4 — Décharge</strong> · Réduis toutes tes charges de 30% cette semaine. Même exercices, même sets, moins de poids. La surcompensation se produit pendant la récupération, pas pendant l'effort. Tu reprendras plus forte la semaine prochaine.</div>`:''}
   `;
 }
