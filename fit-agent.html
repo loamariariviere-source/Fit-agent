@@ -1466,7 +1466,14 @@ function renderExoList(){
     if(CORE_BLOCK.find(c=>c.id===ex.id)&&!shownCore){
       const lbl=document.createElement('div');
       lbl.className='section-lbl-blue';
-      lbl.innerHTML='💙 Core &mdash; Activation bassin &mdash; après échauffement, avant la séance principale';
+      // Check if we're past the main exercises (post-session core)
+      const mainExos=WS.exercises.filter(e=>!WARMUP.find(w=>w.id===e.id)&&!CORE_BLOCK.find(c=>c.id===e.id));
+      const firstCoreIdx=WS.exercises.findIndex(e=>CORE_BLOCK.find(c=>c.id===e.id));
+      const lastMainIdx=WS.exercises.map((e,i)=>mainExos.find(m=>m.id===e.id)?i:-1).filter(i=>i>=0).pop()||0;
+      const isPostSession=firstCoreIdx>lastMainIdx;
+      lbl.innerHTML=isPostSession
+        ?'💙 Core post-séance — ancrage du bassin neutre · étirement actif'
+        :'💙 Core — après échauffement, avant les charges';
       list.appendChild(lbl);
       shownCore=true;
     }
