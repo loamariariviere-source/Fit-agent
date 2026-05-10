@@ -269,18 +269,6 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 .hist-exo{font-size:.8rem;padding:4px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between}
 .hist-exo:last-child{border-bottom:none}
 .hist-exo-v{color:var(--a2);font-weight:700}
-.hist-edit-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:.68rem;padding:3px 8px;cursor:pointer;margin-left:8px;touch-action:manipulation}
-.hist-edit-btn:active{color:var(--a2);border-color:var(--acc)}
-
-/* ─ MODAL ───────────────────────────────────── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-end;justify-content:center}
-.modal-overlay.on{display:flex}
-.modal-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:580px;padding:20px 16px calc(env(safe-area-inset-bottom,0px)+20px);max-height:85vh;overflow-y:auto}
-.modal-title{font-size:1rem;font-weight:800;margin-bottom:16px}
-.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 4px}
-.modal-label{font-size:.75rem;color:var(--muted);font-weight:700;margin-bottom:5px;display:block;margin-top:12px}
-.modal-select{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-size:.9rem;outline:none;-webkit-appearance:none;appearance:none;font-family:inherit}
-.finisher-done{border-color:var(--green)!important;background:rgba(125,206,160,.15)!important;color:var(--green)!important}
 
 /* ─ WATER TRACKER ────────────────────────────── */
 .water-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:12px}
@@ -352,6 +340,36 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
   opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;
   box-shadow:0 4px 24px rgba(0,0,0,.5)}
 #toast.on{opacity:1}
+
+/* ─ MODAL ────────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,18,.85);z-index:300;
+  align-items:flex-end;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+.modal-overlay.on{display:flex}
+.modal-box{background:var(--s1);border:1px solid var(--border);border-radius:16px 16px 0 0;
+  width:100%;max-width:580px;max-height:85vh;overflow-y:auto;padding:20px 16px 24px}
+.modal-title{font-size:1rem;font-weight:800;margin-bottom:16px}
+.modal-close{float:right;background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:0;line-height:1}
+
+/* ─ FINISHER ─────────────────────────────────────────── */
+.finisher-card{background:rgba(125,206,160,.08);border:1px solid rgba(125,206,160,.25);
+  border-radius:var(--r);padding:16px;margin-bottom:12px}
+.finisher-title{font-size:.88rem;font-weight:800;color:var(--green);margin-bottom:6px}
+.finisher-desc{font-size:.78rem;color:var(--muted);line-height:1.55;margin-bottom:12px}
+.finisher-done-badge{background:rgba(125,206,160,.2);border:1px solid rgba(125,206,160,.4);
+  border-radius:9px;padding:8px 12px;font-size:.78rem;color:var(--green);font-weight:700;text-align:center}
+
+/* ─ STEPS TRACKER ────────────────────────────────────── */
+.steps-card{background:rgba(148,184,224,.06);border:1px solid rgba(148,184,224,.2);
+  border-radius:var(--r);padding:14px;margin-top:10px}
+
+/* ─ WARMUP / CORE LABELS ────────────────────────────── */
+.section-lbl-gold{background:rgba(232,200,122,.08);border:1px solid rgba(232,200,122,.2);
+  border-radius:10px;padding:9px 13px;margin-bottom:8px;font-size:.75rem;color:var(--gold);font-weight:700;line-height:1.5}
+.section-lbl-blue{background:rgba(148,184,224,.08);border:1px solid rgba(148,184,224,.2);
+  border-radius:10px;padding:9px 13px;margin-bottom:8px;font-size:.75rem;color:var(--blue);font-weight:700;line-height:1.5}
+
+/* ─ REST OVERLAY LABEL ───────────────────────────────── */
+.rest-label{font-size:.72rem;font-weight:700;margin-bottom:4px;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -424,29 +442,21 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
       </div>
     </div>
 
-    <!-- STEPS + FINISHER BONUS -->
-    <div class="prog-divider"></div>
-    <div class="prog-block" id="steps-bonus-block">
-      <div class="prog-block-header">
-        <span class="prog-block-icon">👟</span>
-        <span class="prog-block-label" style="font-size:.75rem">Pas du jour &amp; finisher</span>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-        <input type="number" id="steps-input" placeholder="ex : 8000" min="0" max="50000" step="100"
-          oninput="updateStepsBonus()"
-          style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;color:var(--text);font-size:.9rem;outline:none;-webkit-appearance:none;appearance:none;font-family:inherit"/>
-        <span style="font-size:.78rem;color:var(--muted);white-space:nowrap">pas</span>
-      </div>
-      <div style="display:flex;gap:6px;margin-bottom:6px">
-        <button id="finisher-btn" onclick="toggleFinisher()"
-          style="flex:1;padding:7px 8px;border-radius:8px;border:1.5px solid var(--border);background:var(--s2);color:var(--muted);font-size:.72rem;font-weight:700;cursor:pointer;touch-action:manipulation;transition:all .15s">
-          🏃 Finisher fait
-        </button>
-      </div>
-      <div id="steps-breakdown" style="font-size:.73rem;color:var(--muted);line-height:1.7"></div>
-    </div>
-
     <div class="status-msg low" id="n-status" style="margin-top:10px">👆 Indique d'abord ton type de journée</div>
+
+    <!-- Steps + Finisher bonus row -->
+    <div class="steps-card" id="steps-card" style="display:none">
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:10px">👟 Pas du jour &amp; finisher</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <input type="number" id="steps-input" placeholder="Nombre de pas" min="0" max="50000" style="flex:1"/>
+        <button class="btn btn-ghost btn-sm" onclick="saveSteps()" style="width:auto;padding:10px 14px">OK</button>
+      </div>
+      <div id="steps-display" style="font-size:.75rem;color:var(--blue);font-weight:700"></div>
+      <div id="finisher-bonus-display" style="font-size:.75rem;color:var(--green);font-weight:700;margin-top:4px"></div>
+      <div id="steps-finisher-valid" style="margin-top:8px;display:none">
+        <div style="font-size:.72rem;color:var(--green)">🏃 Finisher fait</div>
+      </div>
+    </div>
   </div>
 
   <!-- Macros summary strip -->
@@ -658,20 +668,14 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
     <div id="c-po-alerts"></div>
 
     <!-- FINISHER -->
-    <div id="c-finisher" class="card" style="padding:16px;margin-bottom:12px;display:none">
-      <div style="font-size:.88rem;font-weight:800;margin-bottom:10px">🏃 Finisher recommandé</div>
-      <div id="c-finisher-content"></div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button id="c-finisher-done-btn" onclick="markFinisherDone()" class="btn btn-green" style="flex:1;font-size:.82rem">
-          ✅ Finisher fait
-        </button>
-        <button onclick="skipFinisher()" class="btn btn-ghost btn-sm" style="font-size:.78rem">
-          Passer
-        </button>
+    <div class="finisher-card" id="c-finisher" style="display:none">
+      <div class="finisher-title" id="c-finisher-title">🏃 Finisher recommandé</div>
+      <div class="finisher-desc" id="c-finisher-desc"></div>
+      <div id="c-finisher-actions">
+        <button class="btn btn-green" onclick="validateFinisher()" style="margin-bottom:8px">✅ Finisher fait</button>
+        <button class="btn btn-ghost btn-sm" onclick="skipFinisher()">Passer</button>
       </div>
-      <div id="c-finisher-done-msg" style="display:none;font-size:.78rem;color:var(--green);font-weight:700;margin-top:8px;text-align:center">
-        ✓ Finisher validé · calories ajoutées à ton objectif
-      </div>
+      <div class="finisher-done-badge" id="c-finisher-done" style="display:none">✓ Finisher validé · calories ajoutées à ton objectif</div>
     </div>
     <div class="card" style="padding:20px">
       <div style="text-align:center;margin-bottom:14px">
@@ -711,8 +715,6 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
     <button class="btn btn-ghost" onclick="backToHome()" style="margin-top:10px">← Retour à l'accueil</button>
   </div>
 </div>
-
-<!-- ────────────────────────────────────────────── -->
 <!-- TAB: HISTORIQUE                                -->
 <!-- ────────────────────────────────────────────── -->
 <div class="tab" id="tab-history">
@@ -721,9 +723,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
     <div class="date-badge" id="h-date"></div>
   </div>
   <div class="section-title">Séances récentes</div>
-  <button onclick="openAddPastSession()" class="btn btn-ghost" style="width:100%;margin-bottom:10px;font-size:.82rem">
-    ➕ Ajouter une séance passée
-  </button>
+  <button class="btn btn-ghost btn-sm" style="margin-bottom:10px" onclick="openAddPastSession()">➕ Ajouter une séance passée</button>
   <div id="h-workout-list"><div class="no-meals">Aucune séance enregistrée</div></div>
   <div class="section-title" style="margin-top:20px">Nutrition (7 jours)</div>
   <div class="card" id="h-nutri-hist" style="padding:13px">
@@ -797,32 +797,41 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
 </div>
 
 <!-- ── REST OVERLAY ────────────────────────────── -->
-<!-- ─ MODAL: ADD PAST SESSION ──────────────────── -->
-<div class="modal-overlay" id="modal-past-session">
-  <div class="modal-box">
-    <div class="modal-title">➕ Ajouter une séance passée <button class="modal-close" onclick="closeModal('modal-past-session')">✕</button></div>
-    <label class="modal-label">Date</label>
-    <input type="date" id="past-sess-date" class="modal-select" style="cursor:pointer"/>
-    <label class="modal-label">Type de séance</label>
-    <select id="past-sess-type" class="modal-select"></select>
-    <button class="btn btn-acc" style="margin-top:18px" onclick="savePastSession()">✅ Enregistrer la séance</button>
-  </div>
-</div>
-
-<!-- ─ MODAL: EDIT PAST SESSION ─────────────────── -->
-<div class="modal-overlay" id="modal-edit-session">
-  <div class="modal-box">
-    <div class="modal-title">✏️ Modifier la séance <button class="modal-close" onclick="closeModal('modal-edit-session')">✕</button></div>
-    <div id="edit-sess-exos"></div>
-    <button class="btn btn-acc" style="margin-top:18px" onclick="saveEditedSession()">💾 Enregistrer les modifications</button>
-  </div>
-</div>
-
 <div id="rest-overlay">
+  <div class="rest-label" id="rest-label-top"></div>
   <div class="rest-title">⏱️ Récupération</div>
   <div class="rest-time" id="rest-time">90</div>
   <div class="rest-sub" id="rest-next">Prochain set</div>
   <button class="rest-skip" onclick="skipRest()">Sauter →</button>
+</div>
+
+<!-- ── MODAL: ADD PAST SESSION ──────────────────── -->
+<div class="modal-overlay" id="modal-past-session">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-past-session')">✕</button>
+    <div class="modal-title">➕ Ajouter une séance passée</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Date</label>
+        <input type="date" id="past-sess-date" style="width:100%"/>
+      </div>
+      <div>
+        <label style="font-size:.75rem;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Type de séance</label>
+        <select id="past-sess-type" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-size:.88rem"></select>
+      </div>
+      <button class="btn btn-acc" onclick="savePastSession()">✅ Enregistrer la séance</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: EDIT PAST SESSION ─────────────────── -->
+<div class="modal-overlay" id="modal-edit-session">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-edit-session')">✕</button>
+    <div class="modal-title">✏️ Modifier la séance</div>
+    <div id="edit-sess-exos"></div>
+    <button class="btn btn-acc" style="margin-top:8px" onclick="saveEditedSession()">💾 Enregistrer les modifications</button>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -1016,7 +1025,7 @@ const N_SESSIONS=[
   {id:'rest',  icon:'😴',name:'Repos',           sub:'Pas de sport aujourd\'hui',      goal:80, ratio:'1.3g/kg',color:'#7dcea0',get kcal(){return calcKcal(1.20,200)},why:'Jour de récupération. Mange selon ton appétit, sans stress.'},
 ];
 const QUICK_FOODS=[
-  {n:'Overnight oats complet',p:19,c:282},{n:'Flocons d\'avoine 40g',p:5,c:156},{n:'Skyr nature 100g',p:11,c:65},
+  {n:'Flocons d\'avoine 40g',p:5,c:156},{n:'Skyr nature 100g',p:11,c:65},
   {n:'Blanc de poulet 162g',p:50,c:267},{n:'Sardines 100g',p:25,c:208},
   {n:'2 œufs',p:13,c:160},{n:'3 œufs',p:19,c:240},
   {n:'Shaker isolate 30g',p:23,c:111},{n:'Saumon 150g',p:37,c:312},
@@ -1409,9 +1418,7 @@ function startWorkout(sessionId){
     const ws=getWStore();
     const ov=ws.workout.overload[ex.id]||{};
     const lastW=ov.currentWeight!=null?ov.currentWeight:ex.wDef;
-    // Unilateral: double slots (G then D per set pair)
-    const slotCount=isUni(ex.id)?ex.sets*2:ex.sets;
-    WS.logged[ex.id]=Array.from({length:slotCount},()=>({w:lastW,r:'',done:false}));
+    WS.logged[ex.id]=Array.from({length:ex.sets},()=>({w:lastW,r:'',done:false}));
   });
   document.getElementById('w-home').style.display='none';
   document.getElementById('session-complete').classList.remove('on');
@@ -1438,136 +1445,75 @@ function renderExoList(){
   document.getElementById('w-progress-label').textContent=`${doneSets}/${totalSets} sets`;
 
   // show finish btn if all done
-  const allDone=WS.exercises.every(e=>{
-    const slots=WS.logged[e.id]||[];
-    const needed=isUni(e.id)?e.sets*2:e.sets;
-    return slots.filter(s=>s.done).length>=needed;
-  });
+  const allDone=WS.exercises.every(e=>(WS.logged[e.id]||[]).every(s=>s.done));
   document.getElementById('w-finish-btn').style.display=allDone?'block':'none';
 
   list.innerHTML='';
-  // Warmup label
-  const warmupIds=new Set(WARMUP.map(e=>e.id));
-  const coreIds=new Set(CORE_BLOCK.map(e=>e.id));
-  let lastSection='';
+
+  // Track section labels shown
+  let shownWarmup=false;
+  let shownCore=false;
 
   WS.exercises.forEach((ex,ei)=>{
-    // Section labels
-    const section=warmupIds.has(ex.id)?'warmup':coreIds.has(ex.id)?'core':'main';
-    if(section!==lastSection){
-      lastSection=section;
+    // Insert section labels
+    if(WARMUP.find(w=>w.id===ex.id)&&!shownWarmup){
       const lbl=document.createElement('div');
-      if(section==='warmup'){
-        lbl.innerHTML=\`<div style="background:rgba(232,200,122,.08);border:1px solid rgba(232,200,122,.2);border-radius:10px;padding:9px 13px;margin-bottom:8px;font-size:.75rem;color:var(--gold);font-weight:700">
-          🔥 Échauffement d'abord — puis activation core ci-dessous
-        </div>\`;
-      } else if(section==='core'){
-        lbl.innerHTML=\`<div style="background:rgba(148,184,224,.08);border:1px solid rgba(148,184,224,.2);border-radius:10px;padding:9px 13px;margin-bottom:8px;font-size:.75rem;color:var(--blue);font-weight:700">
-          💪 Core · Activation bassin — après échauffement, avant la séance principale
-        </div>\`;
-      } else if(ei>0){
-        lbl.innerHTML=\`<div style="height:2px;background:var(--border);border-radius:2px;margin:12px 0 10px"></div>\`;
-      }
+      lbl.className='section-lbl-gold';
+      lbl.innerHTML='🔥 Echauffement d\'abord &mdash; puis activation core ci-dessous';
       list.appendChild(lbl);
+      shownWarmup=true;
     }
+    if(CORE_BLOCK.find(c=>c.id===ex.id)&&!shownCore){
+      const lbl=document.createElement('div');
+      lbl.className='section-lbl-blue';
+      lbl.innerHTML='💙 Core &mdash; Activation bassin &mdash; après échauffement, avant la séance principale';
+      list.appendChild(lbl);
+      shownCore=true;
+    }
+
     const logged=WS.logged[ex.id]||[];
     const doneCount=logged.filter(s=>s.done).length;
-    const totalSlots=isUni(ex.id)?ex.sets*2:ex.sets;
-    const status=doneCount===0?'todo':doneCount===totalSlots?'done':'partial';
-    const donePairs=isUni(ex.id)?Math.floor(doneCount/2):doneCount;
-    const statusLabel=status==='done'?'✓ Terminé':status==='partial'?(isUni(ex.id)?`${donePairs}/${ex.sets} séries`:`${doneCount}/${ex.sets}`):ex.wUnit==='corps'||ex.wUnit==='max reps'||ex.wUnit==='s'||ex.wUnit==='s/côté'?`${ex.sets}×${ex.rMin||'max'}`:`${ex.sets}×${ex.rMin}-${ex.rMax} · ${ex.wDef}${ex.wUnit}`;
+    const status=doneCount===0?'todo':doneCount===ex.sets?'done':'partial';
+    const statusLabel=status==='done'?'✓ Terminé':status==='partial'?`${doneCount}/${ex.sets}`:ex.wUnit==='corps'||ex.wUnit==='max reps'||ex.wUnit==='s'||ex.wUnit==='s/côté'?`${ex.sets}×${ex.rMin||'max'}`:`${ex.sets}×${ex.rMin}-${ex.rMax} · ${ex.wDef}${ex.wUnit}`;
 
     const isBodyWeight=ex.wUnit==='corps'||ex.wUnit==='max reps'||ex.wUnit==='s'||ex.wUnit==='s/côté';
     const isAssist=ex.wUnit==='kg assistance';
+    const isTimeBased=ex.wUnit==='s'||ex.wUnit==='s/côté';
 
     const card=document.createElement('div');
     card.className='exo-card';
     card.id=`exo-card-${ei}`;
 
-    const wLabel=isBodyWeight?'Poids corps':isAssist?'Assistance kg':'Poids '+ex.wUnit;
-    const rLabel=ex.wUnit==='s'||ex.wUnit==='s/côté'?'Secondes':ex.wUnit==='max reps'?'Reps faites':'Reps';
-
-    let setsHTML='';
-    let uniNote='';
-    let uniLabel='';
-
-    if(isUni(ex.id)){
-      // Unilateral: render as paired G/D rows, one pair per set
-      uniLabel=` · <span style="color:var(--gold)">🦵 ${ex.sets} séries × 2 côtés</span>`;
-      uniNote=`<div style="background:rgba(232,200,122,.1);border:1px solid rgba(232,200,122,.25);border-radius:7px;padding:8px 11px;font-size:.73rem;color:var(--gold);margin-bottom:10px;line-height:1.6">
-        🦵 <strong>Exercice unilatéral</strong><br>
-        Jambe G → <strong>30s</strong> → Jambe D → <strong>repos 90s</strong> → répète
+    const setsHTML=logged.map((s,si)=>{
+      const wLabel=isBodyWeight?'Poids corps':isAssist?'Assistance kg':'Poids '+ex.wUnit;
+      const rLabel=ex.wUnit==='s'||ex.wUnit==='s/côté'?'Secondes':ex.wUnit==='max reps'?'Reps faites':'Reps';
+      const timerBtn=isTimeBased?
+        `<button class="set-ok ${s.done?'done':'idle'}" onclick="startSetTimer('${ex.id}',${si},${ex.rMin||30},${ex.restS})">
+          ${s.done?'✓':'⏱'}
+        </button>`:
+        `<button class="set-ok ${s.done?'done':'idle'}" onclick="validateSet('${ex.id}',${si},${ex.restS},${isUni(ex.id)?'true':'false'})">
+          ${s.done?'✓':'→'}
+        </button>`;
+      return`<div class="set-row">
+        <div class="set-num">${si+1}</div>
+        ${isBodyWeight?`<div class="set-col" style="flex:2"><div style="background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:9px;text-align:center;font-size:.78rem;color:var(--muted)">${ex.wUnit}</div><div class="set-lbl">${wLabel}</div></div>`
+        :`<div class="set-col"><input type="number" value="${s.w||''}" placeholder="kg" min="0" step="0.5"
+          onchange="updateSet('${ex.id}',${si},'w',this.value)"
+          ${s.done?'disabled':''}
+          style="${s.done?'opacity:.5':''}" />
+          <div class="set-lbl">${wLabel}</div></div>`}
+        <div class="set-col"><input type="number" value="${s.r||''}" placeholder="${ex.rMin||'max'}"
+          min="0" max="100" step="1"
+          onchange="updateSet('${ex.id}',${si},'r',this.value)"
+          ${s.done?'disabled':''}
+          style="${s.done?'opacity:.5':''}" />
+          <div class="set-lbl">${rLabel}</div></div>
+        ${timerBtn}
       </div>`;
-      for(let si=0;si<ex.sets;si++){
-        // Each "set" = 2 sub-sets: G (index si*2) and D (index si*2+1)
-        const gIdx=si*2;
-        const dIdx=si*2+1;
-        const sg=logged[gIdx]||{w:ex.wDef||0,r:ex.rMin||0,done:false};
-        const sd=logged[dIdx]||{w:ex.wDef||0,r:ex.rMin||0,done:false};
-        const pairDone=sg.done&&sd.done;
-        const pairPartial=sg.done&&!sd.done;
-        setsHTML+=`<div style="margin-bottom:10px;padding:10px;background:${pairDone?'rgba(125,206,160,.06)':'var(--s2)'};border:1px solid ${pairDone?'rgba(125,206,160,.25)':'var(--border)'};border-radius:10px">
-          <div style="font-size:.72rem;font-weight:800;color:var(--gold);margin-bottom:8px">Série ${si+1}</div>
-          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
-            <div style="font-size:.7rem;font-weight:700;color:var(--muted);width:14px">G</div>
-            ${isBodyWeight
-              ?`<div style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px;text-align:center;font-size:.75rem;color:var(--muted)">${ex.wUnit}</div>`
-              :`<div class="set-col" style="flex:1"><input type="number" value="${sg.w||''}" placeholder="kg" min="0" step="0.5"
-                onchange="updateUniSet('${ex.id}',${gIdx},'w',this.value)"
-                ${sg.done?'disabled':''}
-                style="width:100%;${sg.done?'opacity:.5':''}"/>
-                <div class="set-lbl">${wLabel}</div></div>`}
-            <div class="set-col" style="flex:1"><input type="number" value="${sg.r||''}" placeholder="${ex.rMin||'max'}" min="0" max="100" step="1"
-              onchange="updateUniSet('${ex.id}',${gIdx},'r',this.value)"
-              ${sg.done?'disabled':''}
-              style="width:100%;${sg.done?'opacity:.5':''}"/>
-              <div class="set-lbl">Reps G</div></div>
-            <button class="set-ok ${sg.done?'done':'idle'}" onclick="validateUniSet('${ex.id}',${gIdx},${dIdx},${ex.restS})">
-              ${sg.done?'✓':'→ G'}
-            </button>
-          </div>
-          ${pairPartial||pairDone?`<div style="display:flex;gap:6px;align-items:center">
-            <div style="font-size:.7rem;font-weight:700;color:var(--muted);width:14px">D</div>
-            ${isBodyWeight
-              ?`<div style="flex:2;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px;text-align:center;font-size:.75rem;color:var(--muted)">${ex.wUnit}</div>`
-              :`<div class="set-col" style="flex:1"><input type="number" value="${sd.w||''}" placeholder="kg" min="0" step="0.5"
-                onchange="updateUniSet('${ex.id}',${dIdx},'w',this.value)"
-                ${sd.done?'disabled':''}
-                style="width:100%;${sd.done?'opacity:.5':''}"/>
-                <div class="set-lbl">${wLabel}</div></div>`}
-            <div class="set-col" style="flex:1"><input type="number" value="${sd.r||''}" placeholder="${ex.rMin||'max'}" min="0" max="100" step="1"
-              onchange="updateUniSet('${ex.id}',${dIdx},'r',this.value)"
-              ${sd.done?'disabled':''}
-              style="width:100%;${sd.done?'opacity:.5':''}"/>
-              <div class="set-lbl">Reps D</div></div>
-            <button class="set-ok ${sd.done?'done':'idle'}" onclick="validateUniSet('${ex.id}',${dIdx},-1,${ex.restS})">
-              ${sd.done?'✓':'→ D'}
-            </button>
-          </div>`:'<div style="font-size:.72rem;color:var(--muted);padding:4px 0 2px">✓ G validé · prépare jambe D dans 30s</div>'}
-        </div>`;
-      }
-    } else {
-      setsHTML=logged.map((s,si)=>{
-        return`<div class="set-row">
-          <div class="set-num">${si+1}</div>
-          ${isBodyWeight?`<div class="set-col" style="flex:2"><div style="background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:9px;text-align:center;font-size:.78rem;color:var(--muted)">${ex.wUnit}</div><div class="set-lbl">${wLabel}</div></div>`
-          :`<div class="set-col"><input type="number" value="${s.w||''}" placeholder="kg" min="0" step="0.5"
-            onchange="updateSet('${ex.id}',${si},'w',this.value)"
-            ${s.done?'disabled':''}
-            style="${s.done?'opacity:.5':''}" />
-            <div class="set-lbl">${wLabel}</div></div>`}
-          <div class="set-col"><input type="number" value="${s.r||''}" placeholder="${ex.rMin||'max'}"
-            min="0" max="100" step="1"
-            onchange="updateSet('${ex.id}',${si},'r',this.value)"
-            ${s.done?'disabled':''}
-            style="${s.done?'opacity:.5':''}" />
-            <div class="set-lbl">${rLabel}</div></div>
-          <button class="set-ok ${s.done?'done':'idle'}" onclick="validateSet('${ex.id}',${si},${ex.restS},${(ex.wUnit==='s'||ex.wUnit==='s/côté')?ex.rMin:0})">
-            ${s.done?'✓':(ex.wUnit==='s'||ex.wUnit==='s/côté')?'⏱':'→'}
-          </button>
-        </div>`;
-      }).join('');
-    }
+    }).join('');
+
+    const uniLabel=isUni(ex.id)?` · <span style="color:var(--gold)">🦵 /côté · ${ex.sets*2} total</span>`:'';
+    const uniNote=isUni(ex.id)?`<div style="background:rgba(232,200,122,.1);border:1px solid rgba(232,200,122,.25);border-radius:7px;padding:7px 10px;font-size:.73rem;color:var(--gold);margin-bottom:10px">🦵 Exercice unilatéral · G puis D sans repos · repos 30s entre les 2 côtés · repos complet 90s après les 2 côtés</div>`:'';
     card.innerHTML=`
       <div class="exo-header" onclick="toggleExo(${ei})">
         <div class="exo-left">
@@ -1603,145 +1549,39 @@ function updateSet(exoId,setIdx,field,val){
   WS.logged[exoId][setIdx][field]=parseFloat(val)||val;
 }
 
-function updateUniSet(exoId,setIdx,field,val){
-  if(!WS.logged[exoId])return;
-  if(!WS.logged[exoId][setIdx])WS.logged[exoId][setIdx]={w:0,r:0,done:false};
-  WS.logged[exoId][setIdx][field]=parseFloat(val)||val;
-}
-
-// dIdx=-1 means this is the D side (last in pair) → full rest after
-// dIdx>=0 means this is the G side → 30s changeover timer then show D
-function validateUniSet(exoId,gOrDIdx,dIdx,restSec){
-  const s=WS.logged[exoId][gOrDIdx];
-  if(!s||s.done)return;
-  s.done=true;
-  renderExoList();
-  if(dIdx>=0){
-    // G side done → 30s changeover timer
-    startChangeoverTimer(30,exoId,gOrDIdx,dIdx,restSec);
-  } else {
-    // D side done → full rest
-    showToast('✓ Série complète !');
-    if(restSec>0)startRestTimerLabeled(restSec,'⏱️ Récupération · prépare la série suivante');
-  }
-}
-
-function startChangeoverTimer(secs,exoId,gIdx,dIdx,restSec){
-  clearInterval(_restInterval);
-  let remaining=secs;
-  const overlay=document.getElementById('rest-overlay');
-  const timeEl=document.getElementById('rest-time');
-  const nextEl=document.getElementById('rest-next');
-  overlay.classList.add('on');
-  timeEl.textContent=remaining;
-  timeEl.style.color='var(--gold)';
-  nextEl.textContent='🦵 Changement de côté · prépare jambe D';
-  document.getElementById('rest-skip').textContent='Sauter →';
-  document.getElementById('rest-skip').onclick=skipRest;
-  _restInterval=setInterval(()=>{
-    remaining--;
-    timeEl.textContent=remaining;
-    if(remaining<=5&&remaining>0)timeEl.style.color='var(--orange)';
-    if(remaining<=0){
-      clearInterval(_restInterval);
-      overlay.classList.remove('on');
-      timeEl.style.color='var(--acc)';
-      if(navigator.vibrate)navigator.vibrate([100,50,100]);
-      showToast('🦵 Jambe D — vas-y !');
-    }
-  },1000);
-}
-
-function startRestTimerLabeled(secs,label){
-  clearInterval(_restInterval);
-  let remaining=secs;
-  const overlay=document.getElementById('rest-overlay');
-  const timeEl=document.getElementById('rest-time');
-  const nextEl=document.getElementById('rest-next');
-  overlay.classList.add('on');
-  timeEl.textContent=remaining;
-  timeEl.style.color='var(--acc)';
-  nextEl.textContent=label||'Récupération';
-  document.getElementById('rest-skip').textContent='Sauter →';
-  document.getElementById('rest-skip').onclick=skipRest;
-  _restInterval=setInterval(()=>{
-    remaining--;
-    timeEl.textContent=remaining;
-    if(remaining<=3&&remaining>0)timeEl.style.color='var(--orange)';
-    if(remaining<=0){
-      clearInterval(_restInterval);
-      overlay.classList.remove('on');
-      timeEl.style.color='var(--acc)';
-      if(navigator.vibrate)navigator.vibrate([200,100,200]);
-    }
-  },1000);
-}
-
-function validateSet(exoId,setIdx,restSec,durationSecs){
-  // For time-based exercises, run the duration timer first if not yet done
+// Track unilateral side: even index = G side, odd = D side
+function validateSet(exoId,setIdx,restSec,isUnilateral){
   const s=WS.logged[exoId][setIdx];
-  if(durationSecs>0&&!s.done){
-    startDurationTimer(durationSecs,exoId,setIdx,restSec);
-    return;
-  }
   s.done=true;
   renderExoList();
   showToast('✓ Set validé !');
-  if(restSec>0)startRestTimer(restSec,exoId,setIdx);
-}
-
-function startDurationTimer(totalSecs,exoId,setIdx,restSec){
-  clearInterval(_restInterval);
-  let remaining=totalSecs;
-  const overlay=document.getElementById('rest-overlay');
-  const timeEl=document.getElementById('rest-time');
-  const nextEl=document.getElementById('rest-next');
-  overlay.classList.add('on');
-  const ex=WS.exercises.find(e=>e.id===exoId);
-  const isSidePlank=ex&&ex.wUnit==='s/côté';
-  timeEl.textContent=remaining;
-  nextEl.textContent=(isSidePlank?'⏱️ Timer — '+ex.name+' (côté)':'⏱️ Timer — '+(ex?ex.name:''))+'';
-  document.getElementById('rest-skip').textContent='✓ Valider';
-  _restInterval=setInterval(()=>{
-    remaining--;
-    timeEl.textContent=remaining;
-    if(remaining<=5&&remaining>0)timeEl.style.color='var(--orange)';
-    if(remaining<=0){
-      clearInterval(_restInterval);
-      overlay.classList.remove('on');
-      timeEl.style.color='var(--acc)';
-      document.getElementById('rest-skip').textContent='Sauter →';
-      if(navigator.vibrate)navigator.vibrate([200,100,200]);
-      // Auto-validate
-      const s=WS.logged[exoId][setIdx];
-      if(s&&!s.done){s.done=true;renderExoList();showToast('✓ Set validé !');if(restSec>0)startRestTimer(restSec,exoId,setIdx);}
+  if(isUnilateral){
+    // Odd sets = just finished G side → 30s side-change timer
+    // Even sets = just finished D side → full rest
+    const isGSide=(setIdx%2===0);
+    if(isGSide){
+      startRestTimer(30,exoId,setIdx,'side');
+    } else {
+      if(restSec>0)startRestTimer(restSec,exoId,setIdx,'rest');
     }
-  },1000);
-  // Override skip to validate immediately
-  document.getElementById('rest-skip').onclick=()=>{
-    clearInterval(_restInterval);
-    overlay.classList.remove('on');
-    timeEl.style.color='var(--acc)';
-    document.getElementById('rest-skip').textContent='Sauter →';
-    document.getElementById('rest-skip').onclick=skipRest;
-    const s=WS.logged[exoId][setIdx];
-    if(s&&!s.done){s.done=true;renderExoList();showToast('✓ Set validé !');if(restSec>0)startRestTimer(restSec,exoId,setIdx);}
-  };
+  } else {
+    if(restSec>0)startRestTimer(restSec,exoId,setIdx,'rest');
+  }
 }
 
-function startRestTimer(secs,exoId,setIdx){
+function startSetTimer(exoId,setIdx,duration,restSec){
+  // Timer countdown for time-based exercises (Dead Bug, Plank, etc.)
   clearInterval(_restInterval);
-  let remaining=secs;
+  let remaining=duration;
   const overlay=document.getElementById('rest-overlay');
   const timeEl=document.getElementById('rest-time');
   const nextEl=document.getElementById('rest-next');
+  const labelEl=document.getElementById('rest-label-top');
   overlay.classList.add('on');
   timeEl.textContent=remaining;
-  // Find next set label
-  const ex=WS.exercises.find(e=>e.id===exoId);
-  const logged=WS.logged[exoId]||[];
-  const nextSet=logged.findIndex((s,i)=>i>setIdx&&!s.done);
-  nextEl.textContent=nextSet>=0?`Prochain : Set ${nextSet+1}/${ex.sets}`:'Exercice terminé 🎉';
+  labelEl.textContent='⏱️ Exercice en cours';
+  labelEl.style.color='var(--blue)';
+  nextEl.textContent='Maintiens la position !';
   _restInterval=setInterval(()=>{
     remaining--;
     timeEl.textContent=remaining;
@@ -1750,6 +1590,51 @@ function startRestTimer(secs,exoId,setIdx){
       clearInterval(_restInterval);
       overlay.classList.remove('on');
       timeEl.style.color='var(--acc)';
+      labelEl.textContent='';
+      if(navigator.vibrate)navigator.vibrate([200,100,200]);
+      // Mark set done and start rest
+      const s=WS.logged[exoId][setIdx];
+      s.done=true;
+      s.r=duration;
+      renderExoList();
+      showToast('✓ Set terminé !');
+      if(restSec>0)startRestTimer(restSec,exoId,setIdx,'rest');
+    }
+  },1000);
+}
+
+function startRestTimer(secs,exoId,setIdx,mode){
+  clearInterval(_restInterval);
+  let remaining=secs;
+  const overlay=document.getElementById('rest-overlay');
+  const timeEl=document.getElementById('rest-time');
+  const nextEl=document.getElementById('rest-next');
+  const labelEl=document.getElementById('rest-label-top');
+  overlay.classList.add('on');
+  timeEl.textContent=remaining;
+  timeEl.style.color='var(--acc)';
+  const isSideChange=mode==='side';
+  if(isSideChange){
+    labelEl.textContent='⏱️ Changement de côté';
+    labelEl.style.color='var(--gold)';
+    nextEl.textContent='Prépare la jambe opposée';
+  } else {
+    labelEl.textContent='';
+    // Find next set label
+    const ex=WS.exercises.find(e=>e.id===exoId);
+    const logged=WS.logged[exoId]||[];
+    const nextSet=logged.findIndex((s,i)=>i>setIdx&&!s.done);
+    nextEl.textContent=nextSet>=0?`Prochain : Set ${nextSet+1}/${ex.sets}`:'Exercice terminé 🎉';
+  }
+  _restInterval=setInterval(()=>{
+    remaining--;
+    timeEl.textContent=remaining;
+    if(remaining<=3&&remaining>0)timeEl.style.color='var(--orange)';
+    if(remaining<=0){
+      clearInterval(_restInterval);
+      overlay.classList.remove('on');
+      timeEl.style.color='var(--acc)';
+      labelEl.textContent='';
       if(navigator.vibrate)navigator.vibrate([200,100,200]);
     }
   },1000);
@@ -1763,11 +1648,7 @@ function skipRest(){
 function quickFinishSession(){
   // Valide toutes les séries non encore cochées avec les valeurs par défaut
   WS.exercises.forEach(ex=>{
-    const slots=WS.logged[ex.id]||[];
-    const needed=isUni(ex.id)?ex.sets*2:ex.sets;
-    // ensure enough slots
-    while(slots.length<needed)slots.push({w:ex.wDef||0,r:ex.rMin||0,done:false});
-    slots.forEach(s=>{
+    (WS.logged[ex.id]||[]).forEach(s=>{
       if(!s.done){
         s.done=true;
         if(!s.r)s.r=ex.rMin||0;
@@ -1866,13 +1747,28 @@ function showCompleteScreen(sessionId,poAlerts,week,weekInCycle){
     });
   }
   sc.scrollIntoView({behavior:'smooth'});
-  // Show finisher recommendation
-  showFinisherOnComplete(sessionId);
-  // Reset finisher done state display
-  const fdBtn=document.getElementById('c-finisher-done-btn');
-  const fdMsg=document.getElementById('c-finisher-done-msg');
-  if(fdBtn)fdBtn.style.display='block';
-  if(fdMsg)fdMsg.style.display='none';
+
+  // Show finisher
+  const isLegs=sessionId==='legs_j1'||sessionId==='legs_j2'||sessionId==='voyage_legs'||sessionId==='voyage_legs_bench';
+  const isUpper=sessionId==='upper_j1'||sessionId==='upper_j2'||sessionId==='voyage_upper'||sessionId==='voyage_upper_bench';
+  const finCard=document.getElementById('c-finisher');
+  const finTitle=document.getElementById('c-finisher-title');
+  const finDesc=document.getElementById('c-finisher-desc');
+  const finActions=document.getElementById('c-finisher-actions');
+  const finDone=document.getElementById('c-finisher-done');
+  finCard.style.display='block';
+  finDone.style.display='none';
+  finActions.style.display='block';
+  _activeFinisherSession=sessionId;
+  if(isLegs){
+    finTitle.textContent='🏃 Finisher recommandé';
+    finDesc.innerHTML='<strong>Marche inclinée · 10 min</strong><br>8% incline · 5,5 km/h · Chaîne postérieure (fessiers, ischio)<br><span style="color:var(--muted);font-size:.72rem">Si pas de tapis : 10 min escaliers à allure soutenue</span>';
+  } else if(isUpper){
+    finTitle.textContent='💪 Finisher recommandé';
+    finDesc.innerHTML='<strong>Bloc abdos haute intensité · 3 rounds</strong><br>Dead Bug ×10 · Plank latéral 30s/côté · Crunch haute intensité ×15';
+  } else {
+    finCard.style.display='none';
+  }
 }
 
 function handlePhoto(evt){
@@ -2359,9 +2255,19 @@ function renderNutrition(){
     document.getElementById('n-status').className='status-msg low';
     document.getElementById('n-status').textContent='👆 Indique d\'abord ton type de journée';
   }
+  // Show steps card when session is selected
+  const stepsCard=document.getElementById('steps-card');
+  if(stepsCard){
+    stepsCard.style.display=goal?'block':'none';
+    if(d.steps){document.getElementById('steps-input').value=d.steps;}
+    renderStepsDisplay();
+  }
   // ── Barre CALORIES / DÉFICIT ──────────────────────
+  const stepsKcal=d.steps?Math.round(d.steps*0.04):0;
+  const finKcal=d.finisherDone?(d.finisherKcal||0):0;
+  const bonusKcal=stepsKcal+finKcal;
   if(sess&&sess.kcal){
-    const kcalTarget=sess.kcal;
+    const kcalTarget=sess.kcal+bonusKcal;
     const kcalConsumed=Math.round(totC);
     const kcalPct=Math.min(100,Math.round((kcalConsumed/kcalTarget)*100));
     const deficit=kcalTarget-kcalConsumed;
@@ -2426,26 +2332,25 @@ function renderHistory(){
   if(sessions.length===0){
     hwl.innerHTML='<div class="no-meals">Aucune séance enregistrée</div>';
   } else {
-    // Build key map
-    const sessionKeyMap=new Map();
-    Object.entries(ws.workout.sessions||{}).forEach(([k,v])=>sessionKeyMap.set(v,k));
-    sessions.forEach(sess=>{
-      const key=sessionKeyMap.get(sess)||Object.entries(ws.workout.sessions||{}).find(([k,v])=>v===sess)?.[0]||'';
+    sessions.forEach((sess,idx)=>{
       const prog=PROGRAM[sess.sessionId];
       if(!prog)return;
       const card=document.createElement('div');card.className='hist-card';
       const d=new Date(sess.date);
+      const sessionKey=Object.keys(ws.workout.sessions||{})
+        .find(k=>ws.workout.sessions[k]===sess)||`${sess.date}-${sess.sessionId}`;
+      const allExos=[...WARMUP,...(prog.cycles.flat()||[]),...((['legs_j1','legs_j2'].includes(sess.sessionId))?CORE_BLOCK:[])];
       const exos=Object.entries(sess.exercises||{}).map(([id,sets])=>{
-        const ex=prog.cycles.flat().find(e=>e.id===id);
+        const ex=allExos.find(e=>e.id===id)||prog.cycles.flat().find(e=>e.id===id);
         if(!ex)return'';
         const doneSets=sets.filter(s=>s.done);
         const maxW=doneSets.length?Math.max(...doneSets.map(s=>parseFloat(s.w)||0)):0;
         return`<div class="hist-exo"><span>${ex.name}</span><span class="hist-exo-v">${doneSets.length}×${maxW?maxW+ex.wUnit:ex.wUnit}</span></div>`;
       }).join('');
-      const manualBadge=sess.manualEntry?'<span style="font-size:.6rem;color:var(--gold);background:rgba(232,200,122,.12);border:1px solid rgba(232,200,122,.3);border-radius:6px;padding:2px 5px;margin-left:5px">✏️ manuel</span>':'';
-      card.innerHTML=`<div class="hist-date" style="display:flex;justify-content:space-between;align-items:flex-start">
-        <span>${prog.icon} ${prog.name} · Cycle ${sess.cycle} S${sess.week} · ${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}${sess.photoTaken?' 📸':''}${manualBadge}</span>
-        <button class="hist-edit-btn" onclick="openEditSession('${key}')">✏️ Modifier</button>
+      const manualBadge=sess.manualEntry?'<span style="font-size:.65rem;background:rgba(232,200,122,.15);border:1px solid rgba(232,200,122,.3);color:var(--gold);border-radius:6px;padding:2px 6px;margin-left:6px">✏️ manuel</span>':'';
+      card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div class="hist-date" style="margin-bottom:0">${prog.icon} ${prog.name} · Cycle ${sess.cycle||'?'} S${sess.week||'?'} · ${d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}${sess.photoTaken?' 📸':''}${manualBadge}</div>
+        <button onclick="openEditSession('${sessionKey}')" style="background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;padding:4px;flex-shrink:0">✏️ Modifier</button>
       </div>${exos}`;
       hwl.appendChild(card);
     });
@@ -2778,137 +2683,92 @@ function goTab(tab){
 }
 
 // ═══════════════════════════════════════════════
-// STEPS & FINISHER BONUS
+// TOAST
 // ═══════════════════════════════════════════════
-function getBodyWeight(){
-  const s=load();
-  const weights=s.weights||{};
-  const sorted=Object.entries(weights).sort((a,b)=>b[0].localeCompare(a[0]));
-  return sorted.length?parseFloat(sorted[0][1]):62;
+let _tid;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(_tid);_tid=setTimeout(()=>t.classList.remove('on'),2600);
 }
 
-function updateStepsBonus(){
-  const steps=parseInt(document.getElementById('steps-input').value)||0;
-  const {s,t,d}=getNDay();
-  d.steps=steps;
+// ═══════════════════════════════════════════════
+// FINISHER
+// ═══════════════════════════════════════════════
+let _activeFinisherSession=null;
+function validateFinisher(){
+  const today=getToday();
+  const{s,t,d}=getNDay();
+  const isLegs=_activeFinisherSession&&(_activeFinisherSession.includes('legs')||_activeFinisherSession.includes('voyage_legs')||_activeFinisherSession.includes('legs_bench'));
+  d.finisherDone=true;
+  d.finisherKcal=isLegs?110:80;
   s[t]=d;save(s);
-  renderCalorieBonus();
-}
-
-function toggleFinisher(){
-  const {s,t,d}=getNDay();
-  d.finisherDone=!d.finisherDone;
-  d.finisherKcal=d.finisherDone?110:0;
-  s[t]=d;save(s);
-  renderCalorieBonus();
-  const btn=document.getElementById('finisher-btn');
-  if(btn){
-    btn.classList.toggle('finisher-done',!!d.finisherDone);
-    btn.textContent=d.finisherDone?'✅ Finisher validé':'🏃 Finisher fait';
-  }
-}
-
-function renderCalorieBonus(){
-  const {d}=getNDay();
-  const steps=d.steps||0;
-  const weight=getBodyWeight();
-  const stepsKcal=Math.round(steps*0.04*(weight/62));
-  const finisherKcal=d.finisherDone?110:0;
-  const totalBonus=stepsKcal+finisherKcal;
-  const bd=document.getElementById('steps-breakdown');
-  if(!bd)return;
-  if(steps===0&&!d.finisherDone){
-    bd.innerHTML='<span style="color:var(--muted)">Saisis tes pas en fin de journée</span>';
-  } else {
-    let html='';
-    if(steps>0)html+=`👟 ${steps.toLocaleString('fr-FR')} pas → <strong style="color:var(--blue)">+${stepsKcal} kcal</strong><br>`;
-    if(d.finisherDone)html+=`🏃 Finisher marche inclinée → <strong style="color:var(--green)">+110 kcal</strong><br>`;
-    html+=`<span style="color:var(--a2);font-weight:700">Total bonus : +${totalBonus} kcal sur ton objectif</span>`;
-    bd.innerHTML=html;
-  }
-  // Update finisher button state
-  const btn=document.getElementById('finisher-btn');
-  if(btn){
-    btn.classList.toggle('finisher-done',!!d.finisherDone);
-    btn.textContent=d.finisherDone?'✅ Finisher validé':'🏃 Finisher fait';
-  }
-}
-
-// Call renderCalorieBonus when nutrition renders
-const _origRenderNutrition=renderNutrition;
-renderNutrition=function(){
-  _origRenderNutrition();
-  // Restore steps input
-  const {d}=getNDay();
-  const inp=document.getElementById('steps-input');
-  if(inp)inp.value=d.steps||'';
-  renderCalorieBonus();
-};
-
-// Finisher on complete screen
-function showFinisherOnComplete(sessionId){
-  const isLegs=sessionId==='legs_j1'||sessionId==='legs_j2'||
-    sessionId==='voyage_legs'||sessionId==='voyage_legs_bench';
-  const isUpper=sessionId==='upper_j1'||sessionId==='upper_j2'||
-    sessionId==='voyage_upper'||sessionId==='voyage_upper_bench';
-  const fc=document.getElementById('c-finisher');
-  const fcon=document.getElementById('c-finisher-content');
-  if(!fc)return;
-  if(isLegs){
-    fcon.innerHTML=`<div style="font-size:.82rem;line-height:1.6;color:var(--muted)">
-      <strong style="color:var(--text)">🏃 Marche inclinée · 10 min</strong><br>
-      8% incline · 5,5 km/h · chaîne postérieure + dépense calorique<br>
-      <span style="color:var(--muted);font-size:.72rem">Si pas de tapis → 10 min d'escaliers à allure soutenue</span>
-    </div>`;
-    fc.style.display='block';
-  } else if(isUpper){
-    fcon.innerHTML=`<div style="font-size:.82rem;line-height:1.6;color:var(--muted)">
-      <strong style="color:var(--text)">💪 Bloc abdos haute intensité · ~10 min</strong><br>
-      Dead Bug 3×8/côté · Plank latéral 3×35s · Crunch 3×15<br>
-      <span style="color:var(--muted);font-size:.72rem">Séance haut → abdos en finisher pour signal local + dépense</span>
-    </div>`;
-    fc.style.display='block';
-  } else {
-    fc.style.display='none';
-  }
-}
-
-function markFinisherDone(){
-  const {s,t,d}=getNDay();
-  d.finisherDone=true;d.finisherKcal=110;
-  s[t]=d;save(s);
-  document.getElementById('c-finisher-done-btn').style.display='none';
-  document.getElementById('c-finisher-done-msg').style.display='block';
-  showToast('✅ Finisher validé ! +110 kcal ajoutées');
+  document.getElementById('c-finisher-actions').style.display='none';
+  document.getElementById('c-finisher-done').style.display='block';
+  renderNutrition();
+  showToast('✅ Finisher validé · +'+d.finisherKcal+'kcal à ton objectif');
 }
 function skipFinisher(){
-  const fc=document.getElementById('c-finisher');
-  if(fc)fc.style.display='none';
+  document.getElementById('c-finisher-actions').style.display='none';
+  document.getElementById('c-finisher').style.display='none';
+}
+
+// ═══════════════════════════════════════════════
+// STEPS TRACKER
+// ═══════════════════════════════════════════════
+function saveSteps(){
+  const val=parseInt(document.getElementById('steps-input').value)||0;
+  if(val<0||val>80000){showToast('⚠️ Nombre de pas invalide');return}
+  const{s,t,d}=getNDay();
+  d.steps=val;
+  s[t]=d;save(s);
+  renderStepsDisplay();
+  renderNutrition();
+  showToast(`👟 ${val.toLocaleString()} pas enregistrés`);
+}
+function renderStepsDisplay(){
+  const{d}=getNDay();
+  const steps=d.steps||0;
+  const stepsKcal=Math.round(steps*0.04);
+  const disp=document.getElementById('steps-display');
+  const finDisp=document.getElementById('finisher-bonus-display');
+  if(disp){
+    if(steps>0){
+      disp.textContent=`👟 ${steps.toLocaleString()} pas · +${stepsKcal} kcal`;
+    } else {
+      disp.textContent='';
+    }
+  }
+  if(finDisp){
+    const finKcal=d.finisherDone?d.finisherKcal||0:0;
+    if(finKcal>0){
+      finDisp.textContent=`🏃 Finisher · +${finKcal} kcal`;
+    } else {
+      finDisp.textContent='';
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════
 // ADD PAST SESSION MODAL
 // ═══════════════════════════════════════════════
 function openAddPastSession(){
-  // Populate date (default yesterday)
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const dateStr=yesterday.toISOString().split('T')[0];
   document.getElementById('past-sess-date').value=dateStr;
   document.getElementById('past-sess-date').max=getToday();
-  // Populate session types
   const sel=document.getElementById('past-sess-type');
   sel.innerHTML=Object.entries(PROGRAM).map(([id,p])=>
     `<option value="${id}">${p.icon} ${p.name}</option>`
   ).join('');
   document.getElementById('modal-past-session').classList.add('on');
 }
-
 function savePastSession(){
   const date=document.getElementById('past-sess-date').value;
   const sessionId=document.getElementById('past-sess-type').value;
-  if(!date||!sessionId){showToast('⚠️ Choisis une date et une séance');return;}
-  if(date>getToday()){showToast('⚠️ Date future non autorisée');return;}
-  const {cycle,week,weekInCycle}=getCurrentCycle();
+  if(!date||!sessionId){showToast('⚠️ Choisis une date et une séance');return}
+  if(date>getToday()){showToast('⚠️ Date future non autorisée');return}
+  const{cycle,week,weekInCycle}=getCurrentCycle();
   const s=getWStore();
   const key=`${date}-${sessionId}`;
   s.workout.sessions[key]={
@@ -2928,24 +2788,24 @@ function savePastSession(){
 // EDIT PAST SESSION (poids / reps)
 // ═══════════════════════════════════════════════
 let _editKey=null;
-
+let _editBuffer={};
 function openEditSession(key){
   _editKey=key;
+  _editBuffer={};
   const s=getWStore();
   const sess=s.workout.sessions[key];
-  if(!sess){showToast('⚠️ Séance introuvable');return;}
+  if(!sess){showToast('⚠️ Séance introuvable');return}
   const prog=PROGRAM[sess.sessionId];
-  if(!prog){showToast('⚠️ Programme inconnu');return;}
-  const {cycle}=getCurrentCycle();
+  if(!prog){showToast('⚠️ Programme inconnu');return}
+  const{cycle}=getCurrentCycle();
   const isVoyage=sess.sessionId.startsWith('voyage');
   const exos=isVoyage?prog.cycles[0]:(prog.cycles[cycle-1]||prog.cycles[0]||[]);
   const allExos=[...WARMUP,...exos,...((['legs_j1','legs_j2'].includes(sess.sessionId))?CORE_BLOCK:[])];
   const editDiv=document.getElementById('edit-sess-exos');
-  let html='<div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">'+
-    prog.icon+' '+prog.name+' · '+sess.date+'</div>';
+  let html=`<div style="font-size:.78rem;color:var(--muted);margin-bottom:12px">${prog.icon} ${prog.name} · ${sess.date}</div>`;
   allExos.forEach(ex=>{
     const sets=sess.exercises[ex.id]||Array.from({length:ex.sets},()=>({w:ex.wDef||0,r:ex.rMin||0,done:true}));
-    const isTime=ex.wUnit==='s'||ex.wUnit==='s/côté';
+    const isTime=ex.wUnit==='s'||ex.wUnit==='s/cote';
     const isBW=ex.wUnit==='corps'||ex.wUnit==='max reps'||isTime;
     html+=`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
       <div style="font-size:.8rem;font-weight:700;margin-bottom:6px">${ex.name}</div>
@@ -2969,25 +2829,18 @@ function openEditSession(key){
     html+='</div></div>';
   });
   editDiv.innerHTML=html;
-  // Store exos for saving
-  editDiv._editExos=allExos;
-  editDiv._editSess=sess;
   document.getElementById('modal-edit-session').classList.add('on');
 }
-
-let _editBuffer={};
 function updateEditSet(exoId,si,field,val){
   if(!_editBuffer[exoId])_editBuffer[exoId]=[];
   if(!_editBuffer[exoId][si])_editBuffer[exoId][si]={};
   _editBuffer[exoId][si][field]=parseFloat(val)||val;
 }
-
 function saveEditedSession(){
-  if(!_editKey){closeModal('modal-edit-session');return;}
+  if(!_editKey){closeModal('modal-edit-session');return}
   const s=getWStore();
   const sess=s.workout.sessions[_editKey];
-  if(!sess){closeModal('modal-edit-session');return;}
-  // Merge edits
+  if(!sess){closeModal('modal-edit-session');return}
   Object.entries(_editBuffer).forEach(([exoId,sets])=>{
     if(!sess.exercises[exoId])sess.exercises[exoId]=[];
     sets.forEach((changes,si)=>{
@@ -2996,25 +2849,13 @@ function saveEditedSession(){
     });
   });
   save(s);
-  _editBuffer={};
-  _editKey=null;
+  _editBuffer={};_editKey=null;
   closeModal('modal-edit-session');
   renderHistory();
   showToast('💾 Séance modifiée !');
 }
-
 function closeModal(id){
   document.getElementById(id).classList.remove('on');
-}
-
-// ═══════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════
-let _tid;
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('on');
-  clearTimeout(_tid);_tid=setTimeout(()=>t.classList.remove('on'),2600);
 }
 
 // ═══════════════════════════════════════════════
@@ -3038,10 +2879,6 @@ renderNutrition();
 renderWater();
 renderSessionHome();
 renderSchedule();
-// Modal: click overlay to close
-document.querySelectorAll('.modal-overlay').forEach(el=>{
-  el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
-});
 </script>
 </body>
 </html>
