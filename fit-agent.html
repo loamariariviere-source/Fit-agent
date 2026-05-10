@@ -2371,7 +2371,9 @@ function renderNutriHistory(){
       const c=Math.round(dd.meals.reduce((a,m)=>a+m.cal,0));
       const sess=dd.type?N_SESSIONS.find(x=>x.id===dd.type):null;
       const goalP=sess?sess.goal:90;
-      const goalC=sess?sess.kcal:1468;
+      const stepsKcal=dd.steps?Math.round(dd.steps*0.04):0;
+      const finKcal=dd.finisherDone?(dd.finisherKcal||0):0;
+      const goalC=sess?(sess.kcal+stepsKcal+finKcal):1468;
       rows.push({
         label:i===0?'Auj.':i===1?'Hier':d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric'}),
         p,c,goalP,goalC,
