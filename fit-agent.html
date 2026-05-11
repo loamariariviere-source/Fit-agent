@@ -453,8 +453,13 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
       </div>
       <div id="steps-display" style="font-size:.75rem;color:var(--blue);font-weight:700"></div>
       <div id="finisher-bonus-display" style="font-size:.75rem;color:var(--green);font-weight:700;margin-top:4px"></div>
-      <div id="steps-finisher-valid" style="margin-top:8px;display:none">
-        <div style="font-size:.72rem;color:var(--green)">🏃 Finisher fait</div>
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-size:.75rem;font-weight:700;margin-bottom:6px">🏃 Finisher</div>
+        <div id="finisher-manual-done" style="display:none;font-size:.75rem;color:var(--green)">✓ Finisher validé · +<span id="finisher-manual-kcal">0</span> kcal</div>
+        <div id="finisher-manual-actions" style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="manualFinisher('legs')" style="flex:1;font-size:.72rem">🏃 Marche inclinée<br><span style="font-weight:400;color:var(--muted)">+110 kcal</span></button>
+          <button class="btn btn-ghost btn-sm" onclick="manualFinisher('upper')" style="flex:1;font-size:.72rem">💪 Bloc abdos<br><span style="font-weight:400;color:var(--muted)">+80 kcal</span></button>
+        </div>
       </div>
     </div>
   </div>
@@ -651,7 +656,7 @@ input::placeholder,textarea::placeholder{color:var(--muted)}
       <button class="btn btn-ghost" onclick="quickFinishSession()" style="flex:1;font-size:.82rem">
         ⚡ Séance faite
       </button>
-      <button class="btn btn-green" id="w-finish-btn" onclick="finishSession()" style="display:none;flex:1">
+      <button class="btn btn-green" id="w-finish-btn" onclick="finishSession()" style="flex:1">
         🏁 Tout logué ✓
       </button>
     </div>
@@ -1446,7 +1451,10 @@ function renderExoList(){
   document.getElementById('w-progress-label').textContent=`${doneSets}/${totalSets} sets`;
 
   // show finish btn if all done
-  const allDone=WS.exercises.every(e=>(WS.logged[e.id]||[]).every(s=>s.done));
+  const allDone=WS.exercises.every(e=>{
+    const logged=WS.logged[e.id]||[];
+    return logged.every(s=>s.done);
+  });
   document.getElementById('w-finish-btn').style.display=allDone?'block':'none';
 
   list.innerHTML='';
@@ -2736,25 +2744,35 @@ function saveSteps(){
   renderNutrition();
   showToast(`👟 ${val.toLocaleString()} pas enregistrés`);
 }
+function manualFinisher(type){
+  const{s,t,d}=getNDay();
+  d.finisherDone=true;
+  d.finisherKcal=type==='legs'?110:80;
+  s[t]=d;save(s);
+  renderStepsDisplay();
+  renderNutrition();
+  showToast('✅ Finisher validé · +'+(type==='legs'?110:80)+'kcal');
+}
 function renderStepsDisplay(){
   const{d}=getNDay();
   const steps=d.steps||0;
   const stepsKcal=Math.round(steps*0.04);
   const disp=document.getElementById('steps-display');
   const finDisp=document.getElementById('finisher-bonus-display');
-  if(disp){
-    if(steps>0){
-      disp.textContent=`👟 ${steps.toLocaleString()} pas · +${stepsKcal} kcal`;
+  const finDone=document.getElementById('finisher-manual-done');
+  const finActions=document.getElementById('finisher-manual-actions');
+  const finKcalSpan=document.getElementById('finisher-manual-kcal');
+  if(disp) disp.textContent=steps>0?`👟 ${steps.toLocaleString()} pas · +${stepsKcal} kcal`:'';
+  const finKcal=d.finisherDone?(d.finisherKcal||0):0;
+  if(finDisp) finDisp.textContent=finKcal>0?`🏃 Finisher · +${finKcal} kcal`:'';
+  if(finDone&&finActions&&finKcalSpan){
+    if(d.finisherDone){
+      finDone.style.display='block';
+      finActions.style.display='none';
+      finKcalSpan.textContent=finKcal;
     } else {
-      disp.textContent='';
-    }
-  }
-  if(finDisp){
-    const finKcal=d.finisherDone?d.finisherKcal||0:0;
-    if(finKcal>0){
-      finDisp.textContent=`🏃 Finisher · +${finKcal} kcal`;
-    } else {
-      finDisp.textContent='';
+      finDone.style.display='none';
+      finActions.style.display='flex';
     }
   }
 }
